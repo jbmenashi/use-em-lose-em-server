@@ -5,3 +5,7 @@ motor
 python-dotenv
 uvicorn
 pydantic
+
+# need to combine these?
+fastapi-users
+beanie
