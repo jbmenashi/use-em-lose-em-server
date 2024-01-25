@@ -1,7 +1,6 @@
-from auth.db import User
 from auth.schemas import UserCreate, UserRead, UserUpdate
-from auth.users import auth_backend, current_active_user, fastapi_users
-from fastapi import APIRouter, Request
+from auth.users import auth_backend, fastapi_users
+from fastapi import APIRouter
 
 def get_users_router(app):
     users_router = APIRouter()

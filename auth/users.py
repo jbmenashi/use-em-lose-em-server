@@ -11,7 +11,6 @@ from auth.db import User, get_user_db, AccessToken, get_access_token_db
 
 SECRET = "SECRET"
 
-
 class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET

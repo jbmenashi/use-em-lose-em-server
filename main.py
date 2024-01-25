@@ -5,6 +5,8 @@ import os
 import uvicorn
 from beanie import init_beanie
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
+
 
 from auth.db import User, AccessToken
 from auth.routers import get_users_router
@@ -24,17 +26,28 @@ async def lifespan(app: FastAPI):
             AccessToken
         ]
     )
-
-    app.include_router(get_users_router(app))
-
-    @app.get("/authenticated-route", tags=["test"])
-    async def authenticated_route(user: User = Depends(current_active_user)):
-        return {"message": f"Hello {user.email}!"}
-
     yield
     app.client.close()
 
 app = FastAPI(lifespan=lifespan)
 
+origins = [
+    os.environ["CLIENT_ORIGIN"]
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+app.include_router(get_users_router(app))
+
+@app.get("/authenticated-route", tags=["test"])
+async def authenticated_route(user: User = Depends(current_active_user)):
+    return {"message": f"Hello {user.email}!"}
 
 
