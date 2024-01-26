@@ -1,5 +1,4 @@
 from typing import Optional
-import uuid
 from pydantic import BaseModel, Field, ConfigDict
 from beanie import PydanticObjectId
 
@@ -14,6 +13,7 @@ class LeagueModel(BaseModel):
     # but provided as `id` in the API requests and responses.
     name: str = Field(...)
     course: str = Field(...)
+    commissioner: Optional[PydanticObjectId] = None
     gpa: float = Field(..., le=4.0)
     model_config = ConfigDict(
         populate_by_name=True,
