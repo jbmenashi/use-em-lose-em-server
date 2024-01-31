@@ -13,6 +13,7 @@ from auth.routers import get_users_router
 from auth.users import current_active_user
 
 from routers.league import get_league_router
+from routers.contestant import get_contestant_router
 
 # import .env variables
 load_dotenv(find_dotenv())
@@ -48,6 +49,7 @@ app.add_middleware(
 
 app.include_router(get_users_router(app))
 app.include_router(get_league_router(app), tags=["league"])
+app.include_router(get_contestant_router(app), tags=["contestant"])
 
 @app.get("/authenticated-route", tags=["test"])
 async def authenticated_route(user: User = Depends(current_active_user)):
