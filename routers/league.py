@@ -53,27 +53,24 @@ def get_league_router(app):
 
     @router.put("/league/{id}", response_description="Update a league", response_model=LeagueModel, response_model_by_alias=False)
     async def update_league(id: str, request: Request, user: User = Depends(current_active_user), league: UpdateLeagueModel = Body(...)):
-        league = {
-        k: v for k, v in league.model_dump(by_alias=True).items() if v is not None
-        }
+        if (existing_league := await request.app.db["Leagues"].find_one({"_id": ObjectId(id)})) is not None:
+            if existing_league["commissioner"] == user.id:
+                if existing_league["locked"] == False:
+                    league = { k: v for k, v in league.model_dump(by_alias=True).items() if v is not None }      
 
-        if league.locked == False:
-            if len(league) >= 1:
-                update_result = await request.app.db["Leagues"].find_one_and_update(
-                    {"_id": ObjectId(id)}, {"$set": league}, return_document=ReturnDocument.AFTER
-                )
-                print(update_result)
-                if update_result is not None:
-                    return update_result
+                    if len(league) >= 1:
+                        update_result = await request.app.db["Leagues"].find_one_and_update(
+                            {"_id": ObjectId(id)}, {"$set": league}, return_document=ReturnDocument.AFTER
+                        )
+                        return update_result
+                    else:
+                        return existing_league
                 else:
-                    raise HTTPException(status_code=404, detail=f"League {id} not found")
+                    raise HTTPException(status_code=400, detail=f"League is locked for changes")
+            else:
+                raise HTTPException(status_code=401, detail=f"Not authorized to edit League {id}")
 
-            if (existing_league := await request.app.db["Leagues"].find_one({"_id": ObjectId(id)})) is not None:
-                return existing_league
-
-            raise HTTPException(status_code=404, detail=f"Student {id} not found")
-        else:
-            raise HTTPException(status_code=400, detail=f"League is locked for changes")
+        raise HTTPException(status_code=404, detail=f"League {id} not found")
 
     @router.delete("/league/{id}", response_description="Delete League")
     async def delete_league(id: str, request: Request, user: User = Depends(current_active_user)):

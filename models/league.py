@@ -4,18 +4,18 @@ from beanie import PydanticObjectId
 
 class Roster(BaseModel):
     roster_size: int = Field(...)
-    positions: object = Field(...)
+    positions: dict = {}
 
 class Scoring(BaseModel):
-    statistics: object = Field(...)
+    statistics: dict = {}
 
 class LeagueModel(BaseModel):
     commissioner: Optional[PydanticObjectId] = None
     league_name: str = Field(...)
     sport: str = Field(...)
-    year: int = Field(...)
+    season: int = Field(...)
     style: str = Field(...)
-    number_of_players: int = Field(...)
+    size: int = Field(...)
     regular_season_weeks: int = Field(...)
     playoff_teams: int = Field(...)
     playoff_weeks: int = Field(...)
@@ -30,14 +30,21 @@ class LeagueModel(BaseModel):
             "example": {
                 "league_name": "Rotisserie Chicken",
                 "sport": "Baseball",
+                "season": 2024,
                 "style": "Points",
-                "number_of_players": 12,
+                "size": 12,
                 "regular_season_weeks": 22,
                 "playoff_teams": 6,
                 "playoff_weeks": 3,
                 "team_parity": True,
-                "roster": {},
-                "scoring": {}
+                "roster": {
+                    "roster_size": 6,
+                    "positions": {}
+                },
+                "scoring": {
+                    "statistics": {}
+                },
+                "locked": False
             }
         },
     )
@@ -51,7 +58,7 @@ class UpdateLeagueModel(BaseModel):
 
     league_name: Optional[str] = None
     style: Optional[str] = None
-    number_of_players: Optional[int] = None
+    size: Optional[int] = None
     regular_season_weeks: Optional[int] = None
     playoff_teams: Optional[int] = None
     playoff_weeks: Optional[int] = None
@@ -72,8 +79,13 @@ class UpdateLeagueModel(BaseModel):
                 "playoff_teams": 6,
                 "playoff_weeks": 3,
                 "team_parity": True,
-                "roster": {},
-                "scoring": {}
+                "roster": {
+                    "roster_size": 6,
+                    "positions": {}
+                },
+                "scoring": {
+                    "statistics": {}
+                },
             }
         },
     )
