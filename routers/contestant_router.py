@@ -2,63 +2,62 @@ from fastapi import APIRouter, Body, Request, HTTPException, status, Depends
 from fastapi.responses import JSONResponse, Response
 
 from auth.users import User, current_active_user
-from models.contestant import ContestantModel
+from models.contestant_model import ContestantModel
 from pymongo import ReturnDocument
+from beanie import PydanticObjectId
 
 from bson import ObjectId, json_util
 import json
-
-class JSONEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, ObjectId):
-            return str(o)
-        return json.JSONEncoder.default(self, o)
 
 def get_contestant_router(app):
 
     router = APIRouter()
 
     @router.post("/contestant/{league_id}", response_description="Create a Contestant (add Contestant to League)", status_code=status.HTTP_201_CREATED, response_model_by_alias=False)
-    async def create_league(league_id: str, request: Request, user: User = Depends(current_active_user), contestant: ContestantModel = Body(...)):
+    async def create_league(league_id: str, request: Request, user: User = Depends(current_active_user)):
         if (
             league_to_join := await request.app.db["Leagues"].find_one({"_id": ObjectId(league_id)})
         ) is not None:
             # get the # of contestants in the league
             league_size = league_to_join["size"]
-            list_of_current_league_contestants = request.app.db["Contestants"].find(
-                {
-                    "league_id": ObjectId(league_id) 
-                }
-            )
-            print(league_size)
-            print(list_of_current_league_contestants)
+
             # make sure there is space in the league by checking number of contestants currently in the league
+            cursor = request.app.db["Contestants"].find({"league_id": ObjectId(league_id)})
+            contestants_count = 0
+            for con in await cursor.to_list(length=100):
+                contestants_count = contestants_count + 1
+
+            if contestants_count >= league_size:
+                raise HTTPException(status_code=400, detail=f"League is full")
+            
             # make sure user isn't in the league already
+            if (
+                already_in_league := await request.app.db["Contestants"].find_one(
+                    {
+                        "$and": [
+                            {"league_id": ObjectId(league_id)},
+                            {"user_id": ObjectId(user.id)}
+                        ]
+                    }
+                )
+            ) is not None:
+                raise HTTPException(status_code=400, detail=f"User is already in this league")
+            
+            contestant = ContestantModel()
+
+            new_contestant = await request.app.db["Contestants"].insert_one(
+            contestant.model_dump(by_alias=True)
+            )
+            created_contestant = await request.app.db["Contestants"].find_one_and_update(
+                {"_id": new_contestant.inserted_id}, {"$set": {"user_id": user.id, "league_id": ObjectId(league_id)}}, return_document=ReturnDocument.AFTER
+            )
+
+            res = {}
+            res["contestant"] = created_contestant
+
+            return json.loads(json_util.dumps(res))
             
         raise HTTPException(status_code=404, detail=f"League {league_id} not found")
-
-        # new_league = await request.app.db["Leagues"].insert_one(
-        #     league.model_dump(by_alias=True)
-        # )
-        # created_league = await request.app.db["Leagues"].find_one_and_update(
-        #     {"_id": new_league.inserted_id}, {"$set": {"commissioner": user.id}}, return_document=ReturnDocument.AFTER
-        # )
-
-        # if created_league:
-        #     contestant = {
-        #         "user_id": user.id,
-        #         "league_id": created_league["_id"]
-        #     }
-        #     new_contestant = await request.app.db["Contestants"].insert_one(contestant)
-        #     created_contestant = await request.app.db["Contestants"].find_one(
-        #     {"_id": new_contestant.inserted_id}
-        # )
-            
-        # res = {}
-        # res["league"] = created_league
-        # res["contestant"] = created_contestant
-
-        # return json.loads(json_util.dumps(res))
     
     # @router.get("/league/{id}", response_description="Get a single league", response_model=LeagueModel, response_model_by_alias=False)
     # async def get_league(id: str, request: Request, user: User = Depends(current_active_user)):

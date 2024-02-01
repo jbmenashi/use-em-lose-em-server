@@ -2,17 +2,11 @@ from fastapi import APIRouter, Body, Request, HTTPException, status, Depends
 from fastapi.responses import JSONResponse, Response
 
 from auth.users import User, current_active_user
-from models.league import LeagueModel, UpdateLeagueModel
+from models.league_model import LeagueModel, UpdateLeagueModel
 from pymongo import ReturnDocument
 
 from bson import ObjectId, json_util
 import json
-
-class JSONEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, ObjectId):
-            return str(o)
-        return json.JSONEncoder.default(self, o)
 
 def get_league_router(app):
 
@@ -30,7 +24,11 @@ def get_league_router(app):
         if created_league:
             contestant = {
                 "user_id": user.id,
-                "league_id": created_league["_id"]
+                "league_id": created_league["_id"],
+                "team_name": None,
+                "team_abbv": None,
+                "team_logo": None,
+                "locked": False
             }
             new_contestant = await request.app.db["Contestants"].insert_one(contestant)
             created_contestant = await request.app.db["Contestants"].find_one(

@@ -12,8 +12,8 @@ from auth.db import User, AccessToken
 from auth.routers import get_users_router
 from auth.users import current_active_user
 
-from routers.league import get_league_router
-from routers.contestant import get_contestant_router
+from routers.league_router import get_league_router
+from routers.contestant_router import get_contestant_router
 
 # import .env variables
 load_dotenv(find_dotenv())
