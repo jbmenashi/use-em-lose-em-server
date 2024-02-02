@@ -2,7 +2,7 @@ from fastapi import APIRouter, Body, Request, HTTPException, status, Depends
 from fastapi.responses import JSONResponse, Response
 
 from auth.users import User, current_active_user
-from models.contestant_model import ContestantModel
+from models.contestant_model import ContestantModel, UpdateContestantModel
 from pymongo import ReturnDocument
 from beanie import PydanticObjectId
 
@@ -14,7 +14,7 @@ def get_contestant_router(app):
     router = APIRouter()
 
     @router.post("/contestant/{league_id}", response_description="Create a Contestant (add Contestant to League)", status_code=status.HTTP_201_CREATED, response_model_by_alias=False)
-    async def create_league(league_id: str, request: Request, user: User = Depends(current_active_user)):
+    async def create_contestant(league_id: str, request: Request, user: User = Depends(current_active_user)):
         if (
             league_to_join := await request.app.db["Leagues"].find_one({"_id": ObjectId(league_id)})
         ) is not None:
@@ -43,7 +43,7 @@ def get_contestant_router(app):
             ) is not None:
                 raise HTTPException(status_code=400, detail=f"User is already in this league")
             
-            contestant = ContestantModel()
+            contestant = ContestantModel(locked=False)
 
             new_contestant = await request.app.db["Contestants"].insert_one(
             contestant.model_dump(by_alias=True)
@@ -59,52 +59,90 @@ def get_contestant_router(app):
             
         raise HTTPException(status_code=404, detail=f"League {league_id} not found")
     
-    # @router.get("/league/{id}", response_description="Get a single league", response_model=LeagueModel, response_model_by_alias=False)
-    # async def get_league(id: str, request: Request, user: User = Depends(current_active_user)):
-    #     if (
-    #         league := await request.app.db["Leagues"].find_one({"_id": ObjectId(id)})
-    #     ) is not None:
-    #         return league
-    #     raise HTTPException(status_code=404, detail=f"League {id} not found")
+    @router.get("/contestant/{id}", response_description="Get a single contestant", response_model=ContestantModel, response_model_by_alias=False)
+    async def get_contestant(id: str, request: Request, user: User = Depends(current_active_user)):
+        if (
+            contestant := await request.app.db["Contestants"].find_one({"_id": ObjectId(id)})
+        ) is not None:
+            return contestant
+        raise HTTPException(status_code=404, detail=f"Contestant {id} not found")
+    
+    @router.get("/contestant/user/{user_id}", response_description="Get all contestants belonging to a user", response_model_by_alias=False)
+    async def get_contestant(user_id: str, request: Request, user: User = Depends(current_active_user)):
+        cursor = request.app.db["Contestants"].find({"user_id": ObjectId(user_id)})
+        list_of_contestants = []
+        for con in await cursor.to_list(length=100):
+            con = json.loads(json_util.dumps(con))
+            list_of_contestants.append(con)
 
-    # @router.put("/league/{id}", response_description="Update a league", response_model=LeagueModel, response_model_by_alias=False)
-    # async def update_league(id: str, request: Request, user: User = Depends(current_active_user), league: UpdateLeagueModel = Body(...)):
-    #     if (existing_league := await request.app.db["Leagues"].find_one({"_id": ObjectId(id)})) is not None:
-    #         if existing_league["commissioner"] == user.id:
-    #             if existing_league["locked"] == False:
-    #                 league = { k: v for k, v in league.model_dump(by_alias=True).items() if v is not None }      
+        return list_of_contestants
+    
+    @router.get("/contestant/league/{league_id}", response_description="Get all contestants belonging to a league", response_model_by_alias=False)
+    async def get_contestant(league_id: str, request: Request, user: User = Depends(current_active_user)):
+        cursor = request.app.db["Contestants"].find({"league_id": ObjectId(league_id)})
+        list_of_contestants = []
+        for con in await cursor.to_list(length=100):
+            con = json.loads(json_util.dumps(con))
+            list_of_contestants.append(con)
 
-    #                 if len(league) >= 1:
-    #                     update_result = await request.app.db["Leagues"].find_one_and_update(
-    #                         {"_id": ObjectId(id)}, {"$set": league}, return_document=ReturnDocument.AFTER
-    #                     )
-    #                     return update_result
-    #                 else:
-    #                     return existing_league
-    #             else:
-    #                 raise HTTPException(status_code=400, detail=f"League is locked for changes")
-    #         else:
-    #             raise HTTPException(status_code=401, detail=f"Not authorized to edit League {id}")
+        return list_of_contestants
 
-    #     raise HTTPException(status_code=404, detail=f"League {id} not found")
+    @router.put("/contestant/{id}", response_description="Update a contestant", response_model=ContestantModel, response_model_by_alias=False)
+    async def update_contestant(id: str, request: Request, user: User = Depends(current_active_user), contestant: UpdateContestantModel = Body(...)):
+        if (existing_contestant := await request.app.db["Contestants"].find_one({"_id": ObjectId(id)})) is not None:
+            if existing_contestant["user_id"] == user.id:
+                if existing_contestant["locked"] == False:
+                    contestant = { k: v for k, v in contestant.model_dump(by_alias=True).items() if v is not None }      
 
-    # @router.delete("/league/{id}", response_description="Delete League")
-    # async def delete_league(id: str, request: Request, user: User = Depends(current_active_user)):
-    #     if (existing_league := await request.app.db["Leagues"].find_one({"_id": ObjectId(id)})) is not None:
-    #         if existing_league["commissioner"] == user.id:
-                
-    #             # Delete all contestants with the league ID
-    #             cursor = request.app.db["Contestants"].find({"league_id": ObjectId(id)})
-    #             for document in await cursor.to_list(length=100):
-    #                 delete_contestants = await request.app.db["Contestants"].delete_one({"_id": document["_id"]})
+                    if len(contestant) >= 1:
+                        update_result = await request.app.db["Contestants"].find_one_and_update(
+                            {"_id": ObjectId(id)}, {"$set": contestant}, return_document=ReturnDocument.AFTER
+                        )
+                        return update_result
+                    else:
+                        return existing_contestant
+                else:
+                    raise HTTPException(status_code=400, detail=f"Contestant is locked for changes")
+            else:
+                raise HTTPException(status_code=401, detail=f"Not authorized to edit Contestant {id}")
 
-    #             delete_result = await request.app.db["Leagues"].delete_one({"_id": ObjectId(id)})
-    #             if delete_result.deleted_count == 1:
-    #                 return Response(status_code=status.HTTP_204_NO_CONTENT)             
-    #         else:
-    #             raise HTTPException(status_code=401, detail=f"Not authorized to delete League {id}")
+        raise HTTPException(status_code=404, detail=f"Contestant {id} not found")
+
+    @router.delete("/contestant/{id}", response_description="Delete contestant")
+    async def delete_contestant(id: str, request: Request, user: User = Depends(current_active_user)):
+        # Does contestant exist
+        if (existing_contestant := await request.app.db["Contestants"].find_one({"_id": ObjectId(id)})) is not None:
+            # Does the user id on the contestant match the user id of the requester
+            if existing_contestant["user_id"] == user.id:
+                # then delete the contestant
+                delete_result = await request.app.db["Contestants"].delete_one({"_id": ObjectId(id)})
+
+                # if the user/contestant is also the commissioner of the league
+                #print(existing_contestant["league_id"])
+                if (
+                    con_is_commissh := await request.app.db["Leagues"].find_one(
+                    {
+                        "$and": [
+                            {"_id": ObjectId(existing_contestant["league_id"])},
+                            {"commissioner": ObjectId(user.id)}
+                        ]
+                    }
+                )
+                ) is not None:
+                    print("here")
+                    # Delete all contestants with the contestant ID
+                    cursor = request.app.db["Contestants"].find({"league_id": ObjectId(existing_contestant["league_id"])})
+                    for document in await cursor.to_list(length=100):
+                        delete_contestants = await request.app.db["Contestants"].delete_one({"_id": document["_id"]})   
+                    # and then delete the league
+                    delete_league_result = await request.app.db["Leagues"].delete_one({"_id": ObjectId(existing_contestant["league_id"])})    
+
+                if delete_result.deleted_count == 1:
+                    return Response(status_code=status.HTTP_204_NO_CONTENT) 
             
+            else:
+                raise HTTPException(status_code=401, detail=f"Not authorized to delete contestant {id}")                           
 
-    #     raise HTTPException(status_code=404, detail=f"League {id} not found")
+        raise HTTPException(status_code=404, detail=f"contestant {id} not found")
 
     return router

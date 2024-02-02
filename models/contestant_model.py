@@ -21,7 +21,7 @@ class ContestantModel(BaseModel):
         },
     )
 
-class UpdateContestanteModel(BaseModel):
+class UpdateContestantModel(BaseModel):
     team_name: Optional[str] = None
     team_abbv: Optional[str] = None
     team_logo: Optional[str] = None
