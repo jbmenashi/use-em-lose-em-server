@@ -2,11 +2,11 @@ from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 from beanie import PydanticObjectId
 
-class Roster(BaseModel):
+class RosterModel(BaseModel):
     roster_size: int = Field(...)
     positions: dict = {}
 
-class Scoring(BaseModel):
+class ScoringModel(BaseModel):
     statistics: dict = {}
 
 class LeagueModel(BaseModel):
@@ -20,9 +20,10 @@ class LeagueModel(BaseModel):
     playoff_teams: int = Field(...)
     playoff_weeks: int = Field(...)
     team_parity: bool = Field(...)
-    roster: Roster = Field(...)
-    scoring: Scoring = Field(...)
+    roster: RosterModel = Field(...)
+    scoring: ScoringModel = Field(...)
     locked: bool = Field(...)
+    active: bool = Field(...)
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -31,7 +32,7 @@ class LeagueModel(BaseModel):
                 "league_name": "Rotisserie Chicken",
                 "sport": "Baseball",
                 "season": 2024,
-                "style": "Points",
+                "style": "Rotisserie",
                 "size": 12,
                 "regular_season_weeks": 22,
                 "playoff_teams": 6,
@@ -44,7 +45,8 @@ class LeagueModel(BaseModel):
                 "scoring": {
                     "statistics": {}
                 },
-                "locked": False
+                "locked": False,
+                "active": False
             }
         },
     )
@@ -63,8 +65,8 @@ class UpdateLeagueModel(BaseModel):
     playoff_teams: Optional[int] = None
     playoff_weeks: Optional[int] = None
     team_parity: Optional[bool] = None
-    roster: Optional[Roster] = None
-    scoring: Optional[Scoring] = None
+    roster: Optional[RosterModel] = None
+    scoring: Optional[ScoringModel] = None
     locked: Optional[bool] = None
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
