@@ -1,6 +1,4 @@
-from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict
-from beanie import PydanticObjectId
+from pydantic import BaseModel, Field
 
 class SeasonStatsModel(BaseModel):
     stats: dict = {}

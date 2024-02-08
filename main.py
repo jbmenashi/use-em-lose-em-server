@@ -15,6 +15,8 @@ from auth.users import current_active_user
 from routers.league_router import get_league_router
 from routers.contestant_router import get_contestant_router
 from routers.player_router import get_player_router
+from routers.lineup_router import get_lineup_router
+from routers.standings_router import get_standings_router
 
 # import .env variables
 load_dotenv(find_dotenv())
@@ -52,6 +54,8 @@ app.include_router(get_users_router(app))
 app.include_router(get_league_router(app), tags=["league"])
 app.include_router(get_contestant_router(app), tags=["contestant"])
 app.include_router(get_player_router(app), tags=["player"])
+app.include_router(get_lineup_router(app), tags=["lineup"])
+app.include_router(get_standings_router(app), tags=["standings"])
 
 @app.get("/authenticated-route", tags=["test"])
 async def authenticated_route(user: User = Depends(current_active_user)):

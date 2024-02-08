@@ -68,7 +68,7 @@ def get_contestant_router(app):
         raise HTTPException(status_code=404, detail=f"Contestant {id} not found")
     
     @router.get("/contestant/user/{user_id}", response_description="Get all contestants belonging to a user", response_model_by_alias=False)
-    async def get_contestant(user_id: str, request: Request, user: User = Depends(current_active_user)):
+    async def get_contestant_by_user(user_id: str, request: Request, user: User = Depends(current_active_user)):
         cursor = request.app.db["Contestants"].find({"user_id": ObjectId(user_id)})
         list_of_contestants = []
         for con in await cursor.to_list(length=100):
@@ -78,7 +78,7 @@ def get_contestant_router(app):
         return list_of_contestants
     
     @router.get("/contestant/league/{league_id}", response_description="Get all contestants belonging to a league", response_model_by_alias=False)
-    async def get_contestant(league_id: str, request: Request, user: User = Depends(current_active_user)):
+    async def get_contestant_by_league(league_id: str, request: Request, user: User = Depends(current_active_user)):
         cursor = request.app.db["Contestants"].find({"league_id": ObjectId(league_id)})
         list_of_contestants = []
         for con in await cursor.to_list(length=100):
