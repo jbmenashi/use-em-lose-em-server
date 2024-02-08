@@ -60,6 +60,14 @@ def get_league_router(app):
                         update_result = await request.app.db["Leagues"].find_one_and_update(
                             {"_id": ObjectId(id)}, {"$set": league}, return_document=ReturnDocument.AFTER
                         )
+
+                        if league["locked"]:
+                            cursor = request.app.db["Contestants"].find({"league_id": ObjectId(id)})
+                            for con in await cursor.to_list(length=100):
+                                update_contestant = await request.app.db["Contestants"].find_one_and_update(
+                                    {"_id": ObjectId(con["_id"])}, {"$set": {"locked": True}}
+                                )
+
                         return update_result
                     else:
                         return existing_league
