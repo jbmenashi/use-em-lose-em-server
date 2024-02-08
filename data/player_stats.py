@@ -2,12 +2,16 @@ from pymongo import MongoClient
 from bson import ObjectId
 import requests
 from datetime import datetime
+from dotenv import load_dotenv, find_dotenv
+import os
 
-game_date = "2023-MAR-31"
+load_dotenv(find_dotenv())
+
+client = MongoClient(os.environ["MONGODB_CONN"])
+
+game_date = "2023-APR-02"
 current_week = 1
 current_season = 2023
-
-client = MongoClient('mongodb+srv://jmenashi:2OG0nUs1jTIYLWjq@fantasyfootball.xpn4ynh.mongodb.net/?retryWrites=true&w=majority')
 
 db = client.ff_db
 player_game_logs = db["PlayerGameLogs"]

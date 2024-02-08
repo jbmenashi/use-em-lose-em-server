@@ -1,13 +1,16 @@
 from pymongo import MongoClient
 from bson import ObjectId
 import requests
+from dotenv import load_dotenv, find_dotenv
+import os
+
+load_dotenv(find_dotenv())
+
+client = MongoClient(os.environ["MONGODB_CONN"])
+db = client.ff_db
+playerDetails = db["PlayerDetails"]
 
 def get_player_details():
-    client = MongoClient('mongodb+srv://jmenashi:2OG0nUs1jTIYLWjq@fantasyfootball.xpn4ynh.mongodb.net/?retryWrites=true&w=majority')
-
-    db = client.ff_db
-    playerDetails = db["PlayerDetails"]
-
     docs = []
 
     res = requests.get("https://api.sportsdata.io/v3/mlb/scores/json/Players?key=e83af77dbf8849018751c5366a98e164")
