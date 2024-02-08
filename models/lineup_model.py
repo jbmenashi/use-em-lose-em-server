@@ -12,6 +12,7 @@ class Selection(BaseModel):
 
 class LineupModel(BaseModel):
     contestant_id: Optional[PydanticObjectId] = None
+    league_id: Optional[PydanticObjectId] = None
     sport: str = Field(...)
     style: str = Field(...)
     week: int = Field(...)

@@ -13,9 +13,21 @@ def get_lineup_router(app):
 
     router = APIRouter()
 
-    @router.post("/lineup/{contestant_id}", response_description="Create a Lineup (add Lineup to Contestant)", response_model=LineupModel, status_code=status.HTTP_201_CREATED, response_model_by_alias=False)
-    async def create_lineup(contestant_id: str, request: Request, user: User = Depends(current_active_user)):
-        return
+    @router.post("/lineup/{contestant_id}", response_description="Create a Lineup (add Lineup to Contestant)", status_code=status.HTTP_201_CREATED, response_model_by_alias=False)
+    async def create_lineup(contestant_id: str, request: Request, user: User = Depends(current_active_user), lineup: LineupModel = Body(...)):
+        if (existing_contestant := await request.app.db["Contestants"].find_one({"_id": ObjectId(contestant_id)})) is not None:
+            if existing_contestant["user_id"] == user.id:
+                new_lineup = await request.app.db["Lineups"].insert_one(lineup.model_dump(by_alias=True))
+                created_lineup = await request.app.db["Lineups"].find_one_and_update(
+                    {"_id": new_lineup.inserted_id}, {"$set": {"contestant_id": ObjectId(contestant_id), "league_id": ObjectId(existing_contestant["league_id"])}}, return_document=ReturnDocument.AFTER
+                )
+                res = {}
+                res["lineup"] = created_lineup
+
+                return json.loads(json_util.dumps(res))
+            
+            raise HTTPException(status_code=401, detail=f"Not authorized to create lineup for this contestant")
+        raise HTTPException(status_code=404, detail=f"Contestant {contestant_id} not found")
     
     @router.get("/lineup/{id}", response_description="Get a single lineup", response_model=LineupModel, response_model_by_alias=False)
     async def get_lineup(id: str, request: Request, user: User = Depends(current_active_user)):
