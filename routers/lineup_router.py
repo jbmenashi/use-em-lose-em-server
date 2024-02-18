@@ -18,9 +18,20 @@ def get_lineup_router(app):
         if (existing_contestant := await request.app.db["Contestants"].find_one({"_id": ObjectId(contestant_id)})) is not None:
             if existing_contestant["user_id"] == user.id:
                 new_lineup = await request.app.db["Lineups"].insert_one(lineup.model_dump(by_alias=True))
+
+
+                lineup_league = await request.app.db["Leagues"].find_one({"_id": ObjectId(existing_contestant["league_id"])})
+
+                selections = []
+                for key, value in lineup_league["roster"]["positions"].items():
+                    selections.extend([key] * value)
+                
+                selections = [{"player_position": item} for item in selections]
+
                 created_lineup = await request.app.db["Lineups"].find_one_and_update(
-                    {"_id": new_lineup.inserted_id}, {"$set": {"contestant_id": ObjectId(contestant_id), "league_id": ObjectId(existing_contestant["league_id"])}}, return_document=ReturnDocument.AFTER
+                    {"_id": new_lineup.inserted_id}, {"$set": {"contestant_id": ObjectId(contestant_id), "league_id": ObjectId(existing_contestant["league_id"]), "selections": selections}}, return_document=ReturnDocument.AFTER
                 )
+
                 res = {}
                 res["lineup"] = created_lineup
 

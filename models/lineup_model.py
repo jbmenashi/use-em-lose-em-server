@@ -4,10 +4,10 @@ from beanie import PydanticObjectId
 
 class Selection(BaseModel):
     player_game_log_id: Optional[PydanticObjectId] = None
-    player_id: int = Field(...)
-    player_first_name: str = Field(...)
-    player_last_name: str = Field(...)
-    player_team_id: int = Field(...)
+    player_id: Optional[int] = None
+    player_first_name: Optional[str] = None
+    player_last_name: Optional[str] = None
+    player_team_id: Optional[int] = None
     player_position: str = Field(...)
 
 class LineupModel(BaseModel):
