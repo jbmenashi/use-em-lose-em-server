@@ -19,7 +19,7 @@ class LeagueModel(BaseModel):
     regular_season_weeks: int = Field(...)
     playoff_teams: int = Field(...)
     playoff_weeks: int = Field(...)
-    team_parity: bool = Field(...)
+    team_count: int = Field(...)
     roster: RosterModel = Field(...)
     scoring: ScoringModel = Field(...)
     locked: bool = Field(...)
@@ -33,11 +33,11 @@ class LeagueModel(BaseModel):
                 "sport": "Baseball",
                 "season": 2024,
                 "style": "Rotisserie",
-                "size": 12,
+                "size": 2,
                 "regular_season_weeks": 22,
                 "playoff_teams": 6,
                 "playoff_weeks": 3,
-                "team_parity": True,
+                "team_count": 5,
                 "roster": {
                     "roster_size": 6,
                     "positions": {}
@@ -64,7 +64,7 @@ class UpdateLeagueModel(BaseModel):
     regular_season_weeks: Optional[int] = None
     playoff_teams: Optional[int] = None
     playoff_weeks: Optional[int] = None
-    team_parity: Optional[bool] = None
+    team_count: Optional[int] = None
     roster: Optional[RosterModel] = None
     scoring: Optional[ScoringModel] = None
     locked: Optional[bool] = None
@@ -76,11 +76,11 @@ class UpdateLeagueModel(BaseModel):
                 "league_name": "Rotisserie Chicken",
                 "sport": "Baseball",
                 "style": "Points",
-                "number_of_players": 12,
+                "number_of_players": 2,
                 "regular_season_weeks": 22,
                 "playoff_teams": 6,
                 "playoff_weeks": 3,
-                "team_parity": True,
+                "team_count": 5,
                 "roster": {
                     "roster_size": 6,
                     "positions": {}

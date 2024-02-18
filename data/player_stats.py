@@ -117,9 +117,9 @@ def season_stats(player_ids):
                 player_season_stats.update_one(
                     {"_id": ObjectId(found_season_stat["_id"])},
                     {"$set": {
-                        "hits": result_obj["total_hits"],
-                        "home_runs": result_obj["total_home_runs"],
-                        "runs_batted_in": result_obj["total_runs_batted_in"]
+                        "stats.hits": result_obj["total_hits"],
+                        "stats.home_runs": result_obj["total_home_runs"],
+                        "stats.runs_batted_in": result_obj["total_runs_batted_in"]
                     }}
                 )       
                 print(f"updated season stats for player {updated_player_id}")           

@@ -52,19 +52,20 @@ def get_player_details():
                 )       
                 print(f"updated {player["FirstName"]} {player["LastName"]}")
         else:
-            doc = {}
-            doc["sport"] = "MLB"
-            doc["player_id"] = player["PlayerID"]
-            doc["first_name"] = player["FirstName"]
-            doc["last_name"] = player["LastName"]
-            doc["status"] = player["Status"]
-            doc["team_id"] = player["TeamID"]
-            doc["team_abbreviation"] = player["Team"]
-            doc["jersey_num"] = player["Jersey"]
-            doc["position_category"] = player["PositionCategory"]
-            doc["position"] = player["Position"]
-            docs.append(doc)
-            print(f"inserted {player["FirstName"]} {player["LastName"]}")
+            if player["Status"] != "Minors" and player["PositionCategory"] != "P":
+                doc = {}
+                doc["sport"] = "MLB"
+                doc["player_id"] = player["PlayerID"]
+                doc["first_name"] = player["FirstName"]
+                doc["last_name"] = player["LastName"]
+                doc["status"] = player["Status"]
+                doc["team_id"] = player["TeamID"]
+                doc["team_abbreviation"] = player["Team"]
+                doc["jersey_num"] = player["Jersey"]
+                doc["position_category"] = player["PositionCategory"]
+                doc["position"] = player["Position"]
+                docs.append(doc)
+                print(f"inserted {player["FirstName"]} {player["LastName"]}")
 
     if len(docs) > 0:
         playerDetails.insert_many(docs) 

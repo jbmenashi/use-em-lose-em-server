@@ -87,7 +87,7 @@ def get_player_projections():
                     projection["runs_batted_in"] = player["RunsBattedIn"]
                     projection_inserts.append(projection)
                     
-                    print(f"inserted new prpjection for {player["Name"]} for game_date {proj["game_date"]}")
+                    print(f"inserted new projection for {player["Name"]} for game_date {proj["game_date"]}")
 
         if len(projection_inserts) > 0:
             player_projections.insert_many(projection_inserts)
