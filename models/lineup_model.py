@@ -2,13 +2,25 @@ from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 from beanie import PydanticObjectId
 
+
+class GameLog(BaseModel):
+    game_date: str = Field(...)
+    stats: dict = Field(...)
+
+class TotalStats(BaseModel):
+    stats: dict = Field(...)
+
 class Selection(BaseModel):
-    player_game_log_id: Optional[PydanticObjectId] = None
+    game_logs: Optional[GameLog] = None
+    total_stats: Optional[TotalStats] = None
     player_id: Optional[int] = None
-    player_first_name: Optional[str] = None
-    player_last_name: Optional[str] = None
-    player_team_id: Optional[int] = None
-    player_position: str = Field(...)
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    team_id: Optional[int] = None
+    team_abbreviation: Optional[str] = None
+    position: str = Field(...)
+    locked: bool = False
+    index: Optional[int] = None
 
 class LineupModel(BaseModel):
     contestant_id: Optional[PydanticObjectId] = None
@@ -35,14 +47,14 @@ class LineupModel(BaseModel):
     )
 
 class UpdateLineupModel(BaseModel):
-    selections: Optional[list[Selection]] = None
+    selection: Optional[Selection] = None
     locked: Optional[bool] = None
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_schema_extra={
             "example": {
-                "selections": [],
+                "selection": {},
                 "locked": False
             }
         },

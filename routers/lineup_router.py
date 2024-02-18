@@ -19,14 +19,13 @@ def get_lineup_router(app):
             if existing_contestant["user_id"] == user.id:
                 new_lineup = await request.app.db["Lineups"].insert_one(lineup.model_dump(by_alias=True))
 
-
                 lineup_league = await request.app.db["Leagues"].find_one({"_id": ObjectId(existing_contestant["league_id"])})
 
                 selections = []
                 for key, value in lineup_league["roster"]["positions"].items():
                     selections.extend([key] * value)
                 
-                selections = [{"player_position": item} for item in selections]
+                selections = [{"position": item, "locked": False, "index": index} for index, item in enumerate(selections)]
 
                 created_lineup = await request.app.db["Lineups"].find_one_and_update(
                     {"_id": new_lineup.inserted_id}, {"$set": {"contestant_id": ObjectId(contestant_id), "league_id": ObjectId(existing_contestant["league_id"]), "selections": selections}}, return_document=ReturnDocument.AFTER
@@ -50,34 +49,67 @@ def get_lineup_router(app):
     
     @router.get("/lineup/league/{league_id}", response_description="Get all lineups belonging to a league", response_model_by_alias=False)
     async def get_lineup_by_league(league_id: str, request: Request, user: User = Depends(current_active_user)):
-        cursor = request.app.db["Contestants"].find({"league_id": ObjectId(league_id)})
-        list_of_contestants = []
+        cursor = request.app.db["Lineups"].find({"league_id": ObjectId(league_id)})
+        list_of_lineups = []
         for con in await cursor.to_list(length=100):
             con = json.loads(json_util.dumps(con))
-            list_of_contestants.append(con)
+            list_of_lineups.append(con)
 
-        return list_of_contestants
+        return list_of_lineups
 
     @router.put("/lineup/{id}", response_description="Update a lineup", response_model=LineupModel, response_model_by_alias=False)
     async def update_lineup(id: str, request: Request, user: User = Depends(current_active_user), lineup: UpdateLineupModel = Body(...)):
-        if (existing_contestant := await request.app.db["Contestants"].find_one({"_id": ObjectId(id)})) is not None:
-            if existing_contestant["user_id"] == user.id:
-                if existing_contestant["locked"] == False:
-                    contestant = { k: v for k, v in contestant.model_dump(by_alias=True).items() if v is not None }      
+        if (existing_lineup := await request.app.db["Lineups"].find_one({"_id": ObjectId(id)})) is not None:
+            lineup_contestant = await request.app.db["Contestants"].find_one({"_id": ObjectId(existing_lineup["contestant_id"])})
+            lineup_league = await request.app.db["Leagues"].find_one({"_id": ObjectId(existing_lineup["league_id"])})
+            if lineup_contestant["user_id"] == user.id and existing_lineup["locked"] == False:
+                lineup = { k: v for k, v in lineup.model_dump(by_alias=True).items() if v is not None } 
 
-                    if len(contestant) >= 1:
-                        update_result = await request.app.db["Contestants"].find_one_and_update(
-                            {"_id": ObjectId(id)}, {"$set": contestant}, return_document=ReturnDocument.AFTER
-                        )
-                        return update_result
-                    else:
-                        return existing_contestant
-                else:
-                    raise HTTPException(status_code=400, detail=f"Contestant is locked for changes")
+                for selection in existing_lineup["selections"]:
+                    if selection["index"] == lineup["selection"]["index"] and selection["position"] == lineup["selection"]["position"]:
+                        if selection["locked"] == False:
+                            updated_lineup = await request.app.db["Lineups"].find_one_and_update(
+                                {"_id": ObjectId(id)}, 
+                                {"$set": {
+                                    f"selections.{lineup["selection"]["index"]}.player_id": lineup["selection"]["player_id"],
+                                    f"selections.{lineup["selection"]["index"]}.first_name": lineup["selection"]["first_name"],
+                                    f"selections.{lineup["selection"]["index"]}.last_name": lineup["selection"]["last_name"],
+                                    f"selections.{lineup["selection"]["index"]}.team_id": lineup["selection"]["team_id"],
+                                    f"selections.{lineup["selection"]["index"]}.team_abbreviation": lineup["selection"]["team_abbreviation"]
+                                    }}, 
+                                return_document=ReturnDocument.AFTER
+                            )
+                            if lineup["selection"]["player_id"] is not None: # new player and team to unavailables
+                                updated_contestant = await request.app.db["Contestants"].find_one_and_update(
+                                    {"_id": lineup_contestant["_id"]},
+                                    {"$push": 
+                                        {
+                                            "unavailable_players": {
+                                                "player_id": lineup["selection"]["player_id"]
+                                            }
+                                        }
+                                    }
+                                )
+
+                            if selection["player_id"] is not None: # existing player and team removed from unavailables
+                                updated_contestant = await request.app.db["Contestants"].find_one_and_update(
+                                    {"_id": lineup_contestant["_id"]},
+                                    {"$pull": 
+                                        {
+                                            "unavailable_players": {
+                                                "player_id": selection["player_id"]
+                                            }
+                                        }
+                                    }
+                                )                           
+
+                            return updated_lineup
+                        else:
+                            raise HTTPException(status_code=400, detail=f"This selection slot is locked")
             else:
-                raise HTTPException(status_code=401, detail=f"Not authorized to edit Contestant {id}")
+                raise HTTPException(status_code=401, detail=f"Not authorized to edit Lineup {id}")
 
-        raise HTTPException(status_code=404, detail=f"Contestant {id} not found")
+        raise HTTPException(status_code=404, detail=f"Lineup {id} not found")
 
     @router.delete("/lineup/{id}", response_description="Delete lineup")
     async def delete_lineup(id: str, request: Request, user: User = Depends(current_active_user)):
