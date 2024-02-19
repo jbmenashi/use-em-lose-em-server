@@ -186,41 +186,41 @@ def get_lineup_router(app):
 
         raise HTTPException(status_code=404, detail=f"Lineup {id} not found")
 
-    @router.delete("/lineup/{id}", response_description="Delete lineup")
-    async def delete_lineup(id: str, request: Request, user: User = Depends(current_active_user)):
-        # Does contestant exist
-        if (existing_contestant := await request.app.db["Contestants"].find_one({"_id": ObjectId(id)})) is not None:
-            # Does the user id on the contestant match the user id of the requester
-            if existing_contestant["user_id"] == user.id:
-                # then delete the contestant
-                delete_result = await request.app.db["Contestants"].delete_one({"_id": ObjectId(id)})
+    # @router.delete("/lineup/{id}", response_description="Delete lineup")
+    # async def delete_lineup(id: str, request: Request, user: User = Depends(current_active_user)):
+    #     # Does contestant exist
+    #     if (existing_contestant := await request.app.db["Contestants"].find_one({"_id": ObjectId(id)})) is not None:
+    #         # Does the user id on the contestant match the user id of the requester
+    #         if existing_contestant["user_id"] == user.id:
+    #             # then delete the contestant
+    #             delete_result = await request.app.db["Contestants"].delete_one({"_id": ObjectId(id)})
 
-                # if the user/contestant is also the commissioner of the league
-                #print(existing_contestant["league_id"])
-                if (
-                    con_is_commissh := await request.app.db["Leagues"].find_one(
-                    {
-                        "$and": [
-                            {"_id": ObjectId(existing_contestant["league_id"])},
-                            {"commissioner": ObjectId(user.id)}
-                        ]
-                    }
-                )
-                ) is not None:
-                    print("here")
-                    # Delete all contestants with the contestant ID
-                    cursor = request.app.db["Contestants"].find({"league_id": ObjectId(existing_contestant["league_id"])})
-                    for document in await cursor.to_list(length=100):
-                        delete_contestants = await request.app.db["Contestants"].delete_one({"_id": document["_id"]})   
-                    # and then delete the league
-                    delete_league_result = await request.app.db["Leagues"].delete_one({"_id": ObjectId(existing_contestant["league_id"])})    
+    #             # if the user/contestant is also the commissioner of the league
+    #             #print(existing_contestant["league_id"])
+    #             if (
+    #                 con_is_commissh := await request.app.db["Leagues"].find_one(
+    #                 {
+    #                     "$and": [
+    #                         {"_id": ObjectId(existing_contestant["league_id"])},
+    #                         {"commissioner": ObjectId(user.id)}
+    #                     ]
+    #                 }
+    #             )
+    #             ) is not None:
+    #                 print("here")
+    #                 # Delete all contestants with the contestant ID
+    #                 cursor = request.app.db["Contestants"].find({"league_id": ObjectId(existing_contestant["league_id"])})
+    #                 for document in await cursor.to_list(length=100):
+    #                     delete_contestants = await request.app.db["Contestants"].delete_one({"_id": document["_id"]})   
+    #                 # and then delete the league
+    #                 delete_league_result = await request.app.db["Leagues"].delete_one({"_id": ObjectId(existing_contestant["league_id"])})    
 
-                if delete_result.deleted_count == 1:
-                    return Response(status_code=status.HTTP_204_NO_CONTENT) 
+    #             if delete_result.deleted_count == 1:
+    #                 return Response(status_code=status.HTTP_204_NO_CONTENT) 
             
-            else:
-                raise HTTPException(status_code=401, detail=f"Not authorized to delete contestant {id}")                           
+    #         else:
+    #             raise HTTPException(status_code=401, detail=f"Not authorized to delete contestant {id}")                           
 
-        raise HTTPException(status_code=404, detail=f"contestant {id} not found")
+    #     raise HTTPException(status_code=404, detail=f"contestant {id} not found")
 
     return router
