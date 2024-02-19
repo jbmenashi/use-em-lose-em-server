@@ -13,10 +13,6 @@ class UnavailTeam(BaseModel):
     team_id: int 
     team_abbv: str
 
-class TeamCount(BaseModel):
-    team_id: int
-    count: int
-
 class ContestantModel(BaseModel):
     user_id: Optional[PydanticObjectId] = None
     league_id: Optional[PydanticObjectId] = None
@@ -25,7 +21,7 @@ class ContestantModel(BaseModel):
     team_logo: Optional[str] = None
     unavailable_players: Optional[list[UnavailPlayer]] = []
     unavailable_teams: Optional[list[UnavailTeam]] = []
-    team_count: Optional[list[TeamCount]] = []
+    team_count: Optional[dict] = {}
     locked: Optional[bool] = None
     model_config = ConfigDict(
         populate_by_name=True,
@@ -46,7 +42,7 @@ class UpdateContestantModel(BaseModel):
     locked: Optional[bool] = None
     unavailable_players: Optional[list[UnavailPlayer]] = []
     unavailable_teams: Optional[list[UnavailTeam]] = []
-    team_count: Optional[list[TeamCount]] = []
+    team_count: Optional[dict] = {}
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         json_encoders={PydanticObjectId: str},

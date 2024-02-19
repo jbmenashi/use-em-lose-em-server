@@ -62,6 +62,9 @@ def get_lineup_router(app):
         if (existing_lineup := await request.app.db["Lineups"].find_one({"_id": ObjectId(id)})) is not None:
             lineup_contestant = await request.app.db["Contestants"].find_one({"_id": ObjectId(existing_lineup["contestant_id"])})
             lineup_league = await request.app.db["Leagues"].find_one({"_id": ObjectId(existing_lineup["league_id"])})
+            print(lineup_contestant['team_count'])
+            league_team_count = lineup_league['team_count']
+
             if lineup_contestant["user_id"] == user.id and existing_lineup["locked"] == False:
                 lineup = { k: v for k, v in lineup.model_dump(by_alias=True).items() if v is not None } 
 
@@ -79,20 +82,92 @@ def get_lineup_router(app):
                                     }}, 
                                 return_document=ReturnDocument.AFTER
                             )
-                            if lineup["selection"]["player_id"] is not None: # new player and team to unavailables
-                                updated_contestant = await request.app.db["Contestants"].find_one_and_update(
+                            contestant_team_count = lineup_contestant['team_count']
+                            if lineup["selection"]["player_id"] is not None: # new player and team to unavailables                
+                                # if the team is already in the team count
+                                if lineup["selection"]["team_abbreviation"] in contestant_team_count.keys():
+                                    # if the team count has hit the limit
+                                    if contestant_team_count[lineup["selection"]["team_abbreviation"]] + 1 == league_team_count:
+                                        add_to_unavail_teams = await request.app.db["Contestants"].find_one_and_update(
+                                            {"_id": lineup_contestant["_id"]},
+                                            {"$push": 
+                                                {
+                                                    "unavailable_teams": {
+                                                        "team_id": lineup["selection"]["team_id"],
+                                                        "team_abbreviation": lineup["selection"]["team_abbreviation"]
+                                                    }
+                                                }
+                                            }
+                                        )
+                                    # update the team count
+                                    update_team_count = await request.app.db["Contestants"].find_one_and_update(
+                                            {"_id": lineup_contestant["_id"]},
+                                            {"$inc": 
+                                                {
+                                                    f"team_count.{lineup["selection"]["team_abbreviation"]}": 1
+                                                }
+                                            }
+                                        )
+                                else:
+                                    update_team_count = await request.app.db["Contestants"].find_one_and_update(
+                                            {"_id": lineup_contestant["_id"]},
+                                            {"$inc": 
+                                                {
+                                                    f"team_count.{lineup["selection"]["team_abbreviation"]}": 1
+                                                }
+                                            }
+                                        )
+
+                                add_to_unavail_players = await request.app.db["Contestants"].find_one_and_update(
                                     {"_id": lineup_contestant["_id"]},
                                     {"$push": 
                                         {
                                             "unavailable_players": {
-                                                "player_id": lineup["selection"]["player_id"]
+                                                "player_id": lineup["selection"]["player_id"],
+                                                "first_name": lineup["selection"]["first_name"],
+                                                "last_name": lineup["selection"]["last_name"],
+                                                "team_id": lineup["selection"]["team_id"],
+                                                "team_abbreviation": lineup["selection"]["team_abbreviation"]
                                             }
                                         }
                                     }
                                 )
 
-                            if selection["player_id"] is not None: # existing player and team removed from unavailables
-                                updated_contestant = await request.app.db["Contestants"].find_one_and_update(
+                            if "player_id" in selection.keys(): # existing player and team removed from unavailables
+                                
+                                # if the team that's being removed is at the team count
+                                if contestant_team_count[selection["team_abbreviation"]] == league_team_count:
+                                    # remove from unavailable teams
+                                    remove_from_unavail_teams = await request.app.db["Contestants"].find_one_and_update(
+                                        {"_id": lineup_contestant["_id"]},
+                                        {"$pull": 
+                                            {
+                                                "unavailable_teams": {
+                                                    "team_id": selection["team_id"]
+                                                }
+                                            }
+                                        }
+                                    )      
+                                    # update the team count
+                                    update_team_count = await request.app.db["Contestants"].find_one_and_update(
+                                            {"_id": lineup_contestant["_id"]},
+                                            {"$inc": 
+                                                {
+                                                    f"team_count.{selection["team_abbreviation"]}": -1
+                                                }
+                                            }
+                                        )
+                                else:
+                                    update_team_count = await request.app.db["Contestants"].find_one_and_update(
+                                            {"_id": lineup_contestant["_id"]},
+                                            {"$inc": 
+                                                {
+                                                    f"team_count.{selection["team_abbreviation"]}": -1
+                                                }
+                                            }
+                                        )
+
+                                remove_from_unavail_players = await request.app.db["Contestants"].find_one_and_update(
                                     {"_id": lineup_contestant["_id"]},
                                     {"$pull": 
                                         {
