@@ -4,6 +4,7 @@ import requests
 from datetime import datetime
 from dotenv import load_dotenv, find_dotenv
 import os
+from collections import defaultdict
 
 load_dotenv(find_dotenv())
 
@@ -160,43 +161,80 @@ def update_lineups(playerIds):
             selection_index = next((i for i, item in enumerate(lineup["selections"]) if item["player_id"] == player))
 
             if "game_logs" not in lineup["selections"][selection_index].keys():
+                stats_dict = { k:v for (k,v) in game_log_league_specific.items() if k != "game_date"}
                 lineups.update_one(
                     {"_id": ObjectId(lineup["_id"])},
                     {
                         "$push": { f"selections.{selection_index}.game_logs": game_log_league_specific },
-                        "$set": { f"selections.{selection_index}.locked": True }
+                        "$set": { 
+                            f"selections.{selection_index}.locked": True,
+                            f"selections.{selection_index}.total_stats": stats_dict
+                        }
                     }
                 )   
-                # lineups.update_one(
-                #     {"_id": ObjectId(lineup["_id"])},
-                #     { "$set": {f"selections.{selection_index}.locked": True}}
-                # )   
             else:
+                stats_dict = defaultdict(int)
+
+
+                # Dictionary comprehension to calculate stats_dict
+                # stats_dict = defaultdict(int)
+                # [stats_dict.update({key: stats_dict[key] + value}) for game_log in lineup["selections"][selection_index]["game_logs"] for key, value in game_log.items() if key != "game_date"]
+                # [stats_dict.update({key: stats_dict[key] + value}) for key, value in game_log_league_specific.items() if key != "game_date"]
+
                 game_log_exists = next((item for i, item in enumerate(lineup["selections"][selection_index]["game_logs"]) if item["game_date"] == game_date), None) 
 
                 if game_log_exists:
-                    print(game_log_exists)
+                    for game_log in lineup["selections"][selection_index]["game_logs"]:
+                        if game_log["game_date"] != game_log_league_specific["game_date"]:
+                            for key, value in game_log.items():
+                                if key != "game_date":
+                                    stats_dict[key] += value
+
+                    for key, value in game_log_league_specific.items():
+                        if key != "game_date":
+                            stats_dict[key] += value
+
                     lineups.update_one(
                         {"_id": ObjectId(lineup["_id"])},
                         { "$pull": { f"selections.{selection_index}.game_logs": { "game_date": game_date}}}
                     )
                     lineups.update_one(
                         {"_id": ObjectId(lineup["_id"])},
-                        {"$push": { f"selections.{selection_index}.game_logs": game_log_league_specific }}
+                        {
+                            "$push": { f"selections.{selection_index}.game_logs": game_log_league_specific },
+                            "$set": { f"selections.{selection_index}.total_stats": stats_dict }
+                        }
                     )
                 else:
+                    for game_log in lineup["selections"][selection_index]["game_logs"]:
+                        for key, value in game_log.items():
+                            if key != "game_date":
+                                stats_dict[key] += value
+
+                    for key, value in game_log_league_specific.items():
+                        if key != "game_date":
+                            stats_dict[key] += value
+
                     lineups.update_one(
                         {"_id": ObjectId(lineup["_id"])},
                         {
                             "$push": { f"selections.{selection_index}.game_logs": game_log_league_specific },
-                            "$set": { f"selections.{selection_index}.locked": True }
+                            "$set": { 
+                                    f"selections.{selection_index}.locked": True,
+                                    f"selections.{selection_index}.total_stats": stats_dict
+                                }
                         }
                     )                   
+    
+            # create/update keys in outcome field
+            if style == 'Rotisserie':
+                print("tiss")
+
+    
     return
 
 # players = get_player_game_logs()
 # season_stats(players)
-
 players = [10000809]
 update_lineups(players)
 
