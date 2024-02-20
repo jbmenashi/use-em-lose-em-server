@@ -149,6 +149,7 @@ def update_lineups(playerIds):
         for lineup in found_lineups:
 
             league = leagues.find_one({"_id": ObjectId(lineup["league_id"])})
+            style = league["style"]
             scoring = league["scoring"]["statistics"]
 
             game_log_league_specific = {}
@@ -161,12 +162,15 @@ def update_lineups(playerIds):
             if "game_logs" not in lineup["selections"][selection_index].keys():
                 lineups.update_one(
                     {"_id": ObjectId(lineup["_id"])},
-                    {"$push": { f"selections.{selection_index}.game_logs": game_log_league_specific }}
+                    {
+                        "$push": { f"selections.{selection_index}.game_logs": game_log_league_specific },
+                        "$set": { f"selections.{selection_index}.locked": True }
+                    }
                 )   
-                lineups.update_one(
-                    {"_id": ObjectId(lineup["_id"])},
-                    { "$set": {f"selections.{selection_index}.locked": True}}
-                )   
+                # lineups.update_one(
+                #     {"_id": ObjectId(lineup["_id"])},
+                #     { "$set": {f"selections.{selection_index}.locked": True}}
+                # )   
             else:
                 game_log_exists = next((item for i, item in enumerate(lineup["selections"][selection_index]["game_logs"]) if item["game_date"] == game_date), None) 
 
@@ -183,12 +187,11 @@ def update_lineups(playerIds):
                 else:
                     lineups.update_one(
                         {"_id": ObjectId(lineup["_id"])},
-                        {"$push": { f"selections.{selection_index}.game_logs": game_log_league_specific }}
-                    )   
-                    lineups.update_one(
-                        {"_id": ObjectId(lineup["_id"])},
-                        { "$set": {f"selections.{selection_index}.locked": True}}
-                    )                      
+                        {
+                            "$push": { f"selections.{selection_index}.game_logs": game_log_league_specific },
+                            "$set": { f"selections.{selection_index}.locked": True }
+                        }
+                    )                   
     return
 
 # players = get_player_game_logs()
