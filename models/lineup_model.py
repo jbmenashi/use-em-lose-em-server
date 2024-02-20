@@ -11,7 +11,7 @@ class TotalStats(BaseModel):
     stats: dict = Field(...)
 
 class Selection(BaseModel):
-    game_logs: Optional[GameLog] = None
+    game_logs: Optional[list[GameLog]] = None
     total_stats: Optional[TotalStats] = None
     player_id: Optional[int] = None
     first_name: Optional[str] = None
