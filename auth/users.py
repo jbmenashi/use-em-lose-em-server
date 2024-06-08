@@ -3,7 +3,7 @@ from typing import Optional
 from beanie import PydanticObjectId
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, FastAPIUsers
-from fastapi_users.authentication import AuthenticationBackend, CookieTransport
+from fastapi_users.authentication import AuthenticationBackend, BearerTransport, CookieTransport
 from fastapi_users.authentication.strategy.db import AccessTokenDatabase, DatabaseStrategy
 from fastapi_users.db import BeanieUserDatabase, ObjectIDIDMixin
 
@@ -33,8 +33,8 @@ async def get_user_manager(user_db: BeanieUserDatabase = Depends(get_user_db)):
     yield UserManager(user_db)
 
 
+#bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
 cookie_transport = CookieTransport(cookie_max_age=3600)
-
 
 def get_database_strategy(access_token_db: AccessTokenDatabase[AccessToken] = Depends(get_access_token_db)) -> DatabaseStrategy:
     return DatabaseStrategy(access_token_db, lifetime_seconds=3600)

@@ -7,6 +7,7 @@ class UserRead(schemas.BaseUser[PydanticObjectId]):
 
 
 class UserCreate(schemas.BaseUserCreate):
+    # username: str
     pass
 
 

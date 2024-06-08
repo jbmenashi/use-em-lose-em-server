@@ -28,6 +28,5 @@ def get_users_router(app):
         prefix="/users",
         tags=["users"],
     )
-
-
+    
     return users_router

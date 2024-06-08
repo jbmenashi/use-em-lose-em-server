@@ -7,7 +7,6 @@ from beanie import init_beanie
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
-
 from auth.db import User, AccessToken
 from auth.routers import get_users_router
 from auth.users import current_active_user
@@ -32,13 +31,16 @@ async def lifespan(app: FastAPI):
             AccessToken
         ]
     )
+    # test = User()
+    # print(test)
     yield
     app.client.close()
 
 app = FastAPI(lifespan=lifespan)
 
 origins = [
-    os.environ["CLIENT_ORIGIN"]
+    "http://localhost:5173",
+    "http://localhost"
 ]
 
 app.add_middleware(
@@ -48,7 +50,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 app.include_router(get_users_router(app))
 app.include_router(get_league_router(app), tags=["league"])

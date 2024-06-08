@@ -3,6 +3,7 @@ from fastapi_users.db import BeanieBaseUser, BeanieUserDatabase
 from fastapi_users_db_beanie.access_token import BeanieAccessTokenDatabase, BeanieBaseAccessToken
 
 class User(BeanieBaseUser, Document):
+    # username: str
     pass
 
 async def get_user_db():
