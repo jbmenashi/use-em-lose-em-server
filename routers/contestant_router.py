@@ -69,13 +69,57 @@ def get_contestant_router(app):
     
     @router.get("/contestant/user/{user_id}", response_description="Get all contestants belonging to a user", response_model_by_alias=False)
     async def get_contestant_by_user(user_id: str, request: Request, user: User = Depends(current_active_user)):
-        cursor = request.app.db["Contestants"].find({"user_id": ObjectId(user_id)})
+        cursor = request.app.db["Contestants"].aggregate(
+            [
+                {
+                    '$match': {
+                        'user_id': ObjectId(user_id)
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'Leagues',
+                        'localField': 'league_id',
+                        'foreignField': '_id',
+                        'as': 'league_info'
+                    }
+                },
+                {
+                    '$unwind': '$league_info'
+                },
+                {
+                    '$project': {
+                        '_id': 1,
+                        'user_id': 1,
+                        'league_id': 1,
+                        'team_name': 1,
+                        'locked': 1,
+                        'league_name': '$league_info.league_name',
+                        'commissioner_id': '$league_info.commissioner',
+                        'sport': '$league_info.sport',
+                        'style': '$league_info.style',
+                        'league_locked': '$league_info.locked',
+                        'league_active': '$league_info.active',
+                    }
+                }
+            ]
+        )
+
         list_of_contestants = []
         for con in await cursor.to_list(length=100):
+            print(con)
             con = json.loads(json_util.dumps(con))
+            con["contestant_id"] = str(con["_id"]["$oid"])
+            con["league_id"] = str(con["league_id"]["$oid"])
+            con["user_id"] = str(con["user_id"]["$oid"])
+            con["commissioner_id"] = str(con["commissioner_id"]["$oid"])
             list_of_contestants.append(con)
 
         return list_of_contestants
+    
+    @router.get("/test/", response_description="Get all contestants belonging to a user", response_model_by_alias=False)
+    async def get_contestant_test(request: Request, user: User = Depends(current_active_user)):
+        return None
     
     @router.get("/contestant/league/{league_id}", response_description="Get all contestants belonging to a league", response_model_by_alias=False)
     async def get_contestant_by_league(league_id: str, request: Request, user: User = Depends(current_active_user)):

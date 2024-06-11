@@ -16,9 +16,9 @@ class UnavailTeam(BaseModel):
 class ContestantModel(BaseModel):
     user_id: Optional[PydanticObjectId] = None
     league_id: Optional[PydanticObjectId] = None
-    team_name: Optional[str] = None
-    team_abbv: Optional[str] = None
-    team_logo: Optional[str] = None
+    team_name: Optional[str] = ""
+    team_abbv: Optional[str] = ""
+    team_logo: Optional[str] = ""
     unavailable_players: Optional[list[UnavailPlayer]] = []
     unavailable_teams: Optional[list[UnavailTeam]] = []
     team_count: Optional[dict] = {}
@@ -36,9 +36,9 @@ class ContestantModel(BaseModel):
     )
 
 class UpdateContestantModel(BaseModel):
-    team_name: Optional[str] = None
-    team_abbv: Optional[str] = None
-    team_logo: Optional[str] = None
+    team_name: Optional[str] = ""
+    team_abbv: Optional[str] = ""
+    team_logo: Optional[str] = ""
     locked: Optional[bool] = None
     unavailable_players: Optional[list[UnavailPlayer]] = []
     unavailable_teams: Optional[list[UnavailTeam]] = []
