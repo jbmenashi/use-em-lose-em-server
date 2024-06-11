@@ -107,7 +107,6 @@ def get_contestant_router(app):
 
         list_of_contestants = []
         for con in await cursor.to_list(length=100):
-            print(con)
             con = json.loads(json_util.dumps(con))
             con["contestant_id"] = str(con["_id"]["$oid"])
             con["league_id"] = str(con["league_id"]["$oid"])

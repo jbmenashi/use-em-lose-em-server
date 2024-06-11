@@ -48,6 +48,18 @@ def get_league_router(app):
         ) is not None:
             return league
         raise HTTPException(status_code=404, detail=f"League {id} not found")
+    
+    @router.get("/league/available/{user_id}", response_description="Get available leagues to join for a user", response_model_by_alias=False)
+    async def get_league(user_id: str, request: Request, user: User = Depends(current_active_user)):
+        list_of_leagues = []
+        cursor = request.app.db["Leagues"].find({'$and': [{"locked": False},{"active": False}]})
+        for league in await cursor.to_list(length=100):
+            con_cursor = request.app.db["Contestants"].find({'$and': [{"league_id": ObjectId(league["_id"])},{"user_id": ObjectId(user_id)}]})
+            con_list = await con_cursor.to_list(length=100)
+            if len(con_list) == 0:
+                list_of_leagues.append(json.loads(json_util.dumps(league)))
+
+        return list_of_leagues
 
     @router.put("/league/{id}", response_description="Update a league", response_model=LeagueModel, response_model_by_alias=False)
     async def update_league(id: str, request: Request, user: User = Depends(current_active_user), league: UpdateLeagueModel = Body(...)):
