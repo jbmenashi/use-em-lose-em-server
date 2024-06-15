@@ -14,6 +14,9 @@ def get_league_router(app):
 
     @router.post("/league/", response_description="Add new league", status_code=status.HTTP_201_CREATED, response_model_by_alias=False)
     async def create_league(request: Request, user: User = Depends(current_active_user), league: LeagueModel = Body(...)):
+        team_name = league.team_name
+        del league.team_name
+
         new_league = await request.app.db["Leagues"].insert_one(
             league.model_dump(by_alias=True)
         )
@@ -25,9 +28,10 @@ def get_league_router(app):
             contestant = {
                 "user_id": user.id,
                 "league_id": created_league["_id"],
-                "team_name": None,
-                "team_abbv": None,
-                "team_logo": None,
+                "team_name": team_name,
+                "unavailable_players": [],
+                "unavailable_teams": [],
+                "team_count": {},
                 "locked": False
             }
             new_contestant = await request.app.db["Contestants"].insert_one(contestant)

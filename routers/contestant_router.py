@@ -14,7 +14,8 @@ def get_contestant_router(app):
     router = APIRouter()
 
     @router.post("/contestant/{league_id}", response_description="Create a Contestant (add Contestant to League)", status_code=status.HTTP_201_CREATED, response_model_by_alias=False)
-    async def create_contestant(league_id: str, request: Request, user: User = Depends(current_active_user)):
+    async def create_contestant(league_id: str,  request: Request, user: User = Depends(current_active_user), team_name: str | None = None):
+        print(team_name)
         if (
             league_to_join := await request.app.db["Leagues"].find_one({"_id": ObjectId(league_id)})
         ) is not None:
@@ -43,7 +44,7 @@ def get_contestant_router(app):
             ) is not None:
                 raise HTTPException(status_code=400, detail=f"User is already in this league")
             
-            contestant = ContestantModel(locked=False)
+            contestant = ContestantModel(locked=False, team_name=team_name)
 
             new_contestant = await request.app.db["Contestants"].insert_one(
             contestant.model_dump(by_alias=True)

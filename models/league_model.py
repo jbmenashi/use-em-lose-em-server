@@ -24,6 +24,7 @@ class LeagueModel(BaseModel):
     scoring: ScoringModel = Field(...)
     locked: bool = Field(...)
     active: bool = Field(...)
+    team_name: str = Field(...)
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
