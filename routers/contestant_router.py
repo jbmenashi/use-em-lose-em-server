@@ -15,7 +15,6 @@ def get_contestant_router(app):
 
     @router.post("/contestant/{league_id}", response_description="Create a Contestant (add Contestant to League)", status_code=status.HTTP_201_CREATED, response_model_by_alias=False)
     async def create_contestant(league_id: str,  request: Request, user: User = Depends(current_active_user), team_name: str | None = None):
-        print(team_name)
         if (
             league_to_join := await request.app.db["Leagues"].find_one({"_id": ObjectId(league_id)})
         ) is not None:
@@ -52,6 +51,11 @@ def get_contestant_router(app):
             created_contestant = await request.app.db["Contestants"].find_one_and_update(
                 {"_id": new_contestant.inserted_id}, {"$set": {"user_id": user.id, "league_id": ObjectId(league_id)}}, return_document=ReturnDocument.AFTER
             )
+
+            if contestants_count + 1 == league_size:
+                league_to_update = await request.app.db["Leagues"].find_one_and_update(
+                {"_id": ObjectId(league_id)}, {"$set": {"full": True}}, return_document=ReturnDocument.AFTER
+                )    
 
             res = {}
             res["contestant"] = created_contestant
@@ -179,7 +183,11 @@ def get_contestant_router(app):
                     for document in await cursor.to_list(length=100):
                         delete_contestants = await request.app.db["Contestants"].delete_one({"_id": document["_id"]})   
                     # and then delete the league
-                    delete_league_result = await request.app.db["Leagues"].delete_one({"_id": ObjectId(existing_contestant["league_id"])})    
+                    delete_league_result = await request.app.db["Leagues"].delete_one({"_id": ObjectId(existing_contestant["league_id"])})   
+
+                    league_to_update = await request.app.db["Leagues"].find_one_and_update(
+                        {"_id": ObjectId(existing_contestant["league_id"])}, {"$set": {"full": False}}, return_document=ReturnDocument.AFTER
+                    )   
 
                 if delete_result.deleted_count == 1:
                     return Response(status_code=status.HTTP_204_NO_CONTENT) 
