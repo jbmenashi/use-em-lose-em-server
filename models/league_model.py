@@ -22,7 +22,7 @@ class LeagueModel(BaseModel):
     team_count: int = Field(...)
     roster: RosterModel = Field(...)
     scoring: ScoringModel = Field(...)
-    locked: bool = Field(...)
+    scheduled: bool = Field(...)
     active: bool = Field(...)
     full: bool = Field(...)
     team_name: str = Field(...)
@@ -47,7 +47,7 @@ class LeagueModel(BaseModel):
                 "scoring": {
                     "statistics": {}
                 },
-                "locked": False,
+                "scheduled": False,
                 "active": False,
                 "full": False
             }

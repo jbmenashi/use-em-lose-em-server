@@ -56,7 +56,7 @@ def get_league_router(app):
     @router.get("/league/available/{user_id}", response_description="Get available leagues to join for a user", response_model_by_alias=False)
     async def get_league(user_id: str, request: Request, user: User = Depends(current_active_user)):
         list_of_leagues = []
-        cursor = request.app.db["Leagues"].find({'$and': [{"locked": False},{"active": False}]})
+        cursor = request.app.db["Leagues"].find({'$and': [{"locked": False},{"active": False},{"full": False}]})
         for league in await cursor.to_list(length=100):
             con_cursor = request.app.db["Contestants"].find({'$and': [{"league_id": ObjectId(league["_id"])},{"user_id": ObjectId(user_id)}]})
             con_list = await con_cursor.to_list(length=100)
