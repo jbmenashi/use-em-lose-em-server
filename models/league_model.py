@@ -25,7 +25,6 @@ class LeagueModel(BaseModel):
     scheduled: bool = Field(...)
     active: bool = Field(...)
     full: bool = Field(...)
-    team_name: str = Field(...)
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
