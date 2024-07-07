@@ -20,6 +20,7 @@ class ContestantModel(BaseModel):
     unavailable_players: Optional[list[UnavailPlayer]] = []
     unavailable_teams: Optional[list[UnavailTeam]] = []
     team_count: Optional[dict] = {}
+    standings: Optional[dict] = {}
     locked: Optional[bool] = None
     model_config = ConfigDict(
         populate_by_name=True,
@@ -38,6 +39,7 @@ class UpdateContestantModel(BaseModel):
     locked: Optional[bool] = None
     unavailable_players: Optional[list[UnavailPlayer]] = []
     unavailable_teams: Optional[list[UnavailTeam]] = []
+    standings: Optional[dict] = {}
     team_count: Optional[dict] = {}
     model_config = ConfigDict(
         arbitrary_types_allowed=True,

@@ -32,6 +32,7 @@ def get_league_router(app):
                 "unavailable_players": [],
                 "unavailable_teams": [],
                 "team_count": {},
+                "standings": {},
                 "locked": False
             }
             new_contestant = await request.app.db["Contestants"].insert_one(contestant)
