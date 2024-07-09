@@ -25,7 +25,6 @@ def update_standings():
         league_contestants = list(contestants.find({"league_id": ObjectId(league["_id"])}))
 
         for contestant in league_contestants:
-            print(contestant["team_name"])
             con_standings = {
                 "wins": 0,
                 "losses": 0,

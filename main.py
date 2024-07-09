@@ -31,8 +31,6 @@ async def lifespan(app: FastAPI):
             AccessToken
         ]
     )
-    # test = User()
-    # print(test)
     yield
     app.client.close()
 

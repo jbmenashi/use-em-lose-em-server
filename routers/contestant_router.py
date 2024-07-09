@@ -177,7 +177,6 @@ def get_contestant_router(app):
                     }
                 )
                 ) is not None:
-                    print("here")
                     # Delete all contestants with the contestant ID
                     cursor = request.app.db["Contestants"].find({"league_id": ObjectId(existing_contestant["league_id"])})
                     for document in await cursor.to_list(length=100):
