@@ -12,7 +12,7 @@ db = client.ff_db
 matchups = db["Matchups"]
 leagues = db["Leagues"]
 contestants = db["Contestants"]
-
+lineups = db["Lineups"]
 
 def generate_schedule():
     unscheduled_leagues = leagues.find({"scheduled": False, "full": True})
@@ -54,6 +54,44 @@ def generate_schedule():
                     doc["started"] = False
                     doc["finished"] = False
                     matchups.insert_one(doc)
+
+                    lineup_one = {}
+                    lineup_one["contestant_id"] = contestant_ids[i]
+                    lineup_one["league_id"] = league["_id"]
+                    lineup_one["sport"] = league["sport"]
+                    lineup_one["style"] = league["style"]
+                    lineup_one["season"] = league["season"]
+                    lineup_one["week"] = week
+                    lineup_one["score"] = 0
+                    lineup_one["locked"] = False
+
+                    lineup_one_selections = []
+                    for key, value in league["roster"]["positions"].items():
+                        lineup_one_selections.extend([key] * value)
+                    
+                    lineup_one_selections = [{"position": item, "locked": False, "index": index} for index, item in enumerate(lineup_one_selections)]
+                    lineup_one["selections"] = lineup_one_selections
+                    lineups.insert_one(lineup_one)
+
+                    lineup_two = {}
+                    lineup_two["contestant_id"] = contestant_ids[-i-1]
+                    lineup_two["league_id"] = league["_id"]
+                    lineup_two["sport"] = league["sport"]
+                    lineup_two["style"] = league["style"]
+                    lineup_two["season"] = league["season"]
+                    lineup_two["week"] = week
+                    lineup_two["score"] = 0
+                    lineup_two["locked"] = False
+
+                    lineup_two_selections = []
+                    for key, value in league["roster"]["positions"].items():
+                        lineup_two_selections.extend([key] * value)
+                    
+                    lineup_two_selections = [{"position": item, "locked": False, "index": index} for index, item in enumerate(lineup_two_selections)]
+                    lineup_two["selections"] = lineup_two_selections
+                    lineups.insert_one(lineup_two)
+
+
                 contestant_ids.insert(1, contestant_ids.pop())
                 contestant_names.insert(1, contestant_names.pop())
 
