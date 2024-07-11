@@ -3,22 +3,22 @@ from pydantic import BaseModel, Field, ConfigDict
 from beanie import PydanticObjectId
 
 
-class GameLog(BaseModel):
-    game_date: str = Field(...)
-    stats: dict = Field(...)
+# class GameLog(BaseModel):
+#     game_date: str = Field(...)
+#     stats: dict = Field(...)
 
-class TotalStats(BaseModel):
-    stats: dict = Field(...)
+# class TotalStats(BaseModel):
+#     stats: dict = Field(...)
 
 class Selection(BaseModel):
-    game_logs: Optional[list[GameLog]] = None
-    total_stats: Optional[TotalStats] = None
     player_id: Optional[int] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     team_id: Optional[int] = None
     team_abbreviation: Optional[str] = None
     position: str = Field(...)
+    fantasy_stats: Optional[dict] = None
+    total_points: float = 0
     locked: bool = False
     index: Optional[int] = None
 
@@ -27,9 +27,10 @@ class LineupModel(BaseModel):
     league_id: Optional[PydanticObjectId] = None
     sport: str = Field(...)
     style: str = Field(...)
+    season: int = Field(...)
     week: int = Field(...)
     selections: list[Selection] = Field(...)
-    outcome: dict = Field(...)
+    score: float = 0
     locked: bool = False
     model_config = ConfigDict(
         populate_by_name=True,
