@@ -148,7 +148,7 @@ def get_player_game_logs():
                         "def_tds_scored": player["TouchdownsScored"],
                     }}
                 )       
-                print(f"updated {player["Name"]}")
+                print(f"updated {player["Team"]}")
                 updated_players.append(player["PlayerID"])
             else:
                 print(f"no change for {player["Name"]}")
@@ -156,7 +156,7 @@ def get_player_game_logs():
         else:
             game_log = {}
             game_log["player_id"] = player["PlayerID"]
-            game_log["player_name"] = player["Name"]
+            game_log["player_name"] = player["Team"] + " Defense"
             game_log["team_id"] = player["TeamID"]
             game_log["team_abbv"] = player["Team"]
             game_log["season"] = current_season
@@ -180,7 +180,7 @@ def get_player_game_logs():
             
             game_log_inserts.append(game_log)
             
-            print(f"inserted new game log for {player["Name"]}")
+            print(f"inserted new game log for {player["Team"]}")
             updated_players.append(player["PlayerID"])
 
     if len(game_log_inserts) > 0:
@@ -199,6 +199,7 @@ def season_stats(player_ids):
             }, {
                 '$group': {
                     '_id': '$player_id', 
+                    'total_games': {'$sum': 1},
                     'total_pass_yds': { '$sum': '$pass_yds' },
                     'total_pass_tds': { '$sum': '$pass_tds' },
                     'total_ints': { '$sum': '$ints' },
@@ -232,6 +233,7 @@ def season_stats(player_ids):
                 player_season_stats.update_one(
                     {"_id": ObjectId(found_season_stat["_id"])},
                     {"$set": {
+                        "stats.games": result_obj["total_games"],
                         "stats.pass_yds": result_obj["total_pass_yds"],
                         "stats.pass_tds": result_obj["total_pass_tds"],
                         "stats.ints": result_obj["total_ints"],
@@ -254,8 +256,10 @@ def season_stats(player_ids):
         else:
             season_stats = {}
             season_stats["player_id"] = updated_player_id
+            season_stats["sport"] = "NFL"
             season_stats["season"] = current_season
             season_stats["stats"] = {}
+            season_stats["stats"]["games"] = result_obj["total_games"]
             season_stats["stats"]["pass_yds"] = result_obj["total_pass_yds"]
             season_stats["stats"]["pass_tds"] = result_obj["total_pass_tds"]
             season_stats["stats"]["ints"] = result_obj["total_ints"]
@@ -378,5 +382,5 @@ def update_lineups(playerIds):
 
 players = get_player_game_logs()
 season_stats(players)
-update_lineups(players)
+# update_lineups(players)
 

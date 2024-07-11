@@ -35,36 +35,36 @@ def get_player_projections():
                 "week": projection_week
             })
             update = 0
-            if found_projection["pass_yds"] != player["PassingYards"]:
+            if found_projection["stats"]["pass_yds"] != player["PassingYards"]:
                 update = 1
-            if found_projection["pass_tds"] != player["PassingTouchdowns"]:
+            if found_projection["stats"]["pass_tds"] != player["PassingTouchdowns"]:
                 update = 1
-            if found_projection["ints"] != player["PassingInterceptions"]:
+            if found_projection["stats"]["ints"] != player["PassingInterceptions"]:
                 update = 1    
-            if found_projection["rush_yds"] != player["RushingYards"]:
+            if found_projection["stats"]["rush_yds"] != player["RushingYards"]:
                 update = 1     
-            if found_projection["receptions"] != player["Receptions"]:
+            if found_projection["stats"]["receptions"] != player["Receptions"]:
                 update = 1    
-            if found_projection["rec_yds"] != player["ReceivingYards"]:
+            if found_projection["stats"]["rec_yds"] != player["ReceivingYards"]:
                 update = 1    
-            if found_projection["fumbles"] != player["Fumbles"]:
+            if found_projection["stats"]["fumbles"] != player["Fumbles"]:
                 update = 1    
-            if found_projection["tds"] != player["Touchdowns"]:
+            if found_projection["stats"]["tds"] != player["Touchdowns"]:
                 update = 1    
 
             if update == 1:
                 player_projections.update_one(
                     {"_id": ObjectId(found_projection["_id"])},
                     {"$set": {
-                        "pass_yds": player["PassingYards"],
-                        "pass_tds": player["PassingTouchdowns"],
-                        "ints": player["PassingInterceptions"],
-                        "rush_yds": player["RushingYards"],
-                        "receptions": player["Receptions"],
-                        "rec_yds": player["ReceivingYards"],
-                        "fumbles": player["Fumbles"],
-                        "tds": player["Touchdowns"],
-                        "score": score
+                        "stats.pass_yds": player["PassingYards"],
+                        "stats.pass_tds": player["PassingTouchdowns"],
+                        "stats.ints": player["PassingInterceptions"],
+                        "stats.rush_yds": player["RushingYards"],
+                        "stats.receptions": player["Receptions"],
+                        "stats.rec_yds": player["ReceivingYards"],
+                        "stats.fumbles": player["Fumbles"],
+                        "stats.tds": player["Touchdowns"],
+                        "stats.score": score
                     }}
                 )       
                 print(f"updated projection for {player["Name"]} for week {projection_week}")
@@ -78,28 +78,30 @@ def get_player_projections():
                 projection["player_name"] = player["Name"]
                 projection["team_id"] = player["TeamID"]
                 projection["team_abbv"] = player["Team"]
+                projection["sport"] = "NFL"
                 projection["season"] = projection_season
                 projection["week"] = projection_week
                 projection["opponent"] = player["Opponent"]
                 projection["opponent_team_id"] = player["OpponentID"]
                 projection["location"] = player["HomeOrAway"]
-                projection["pass_yds"] = player["PassingYards"]
-                projection["pass_tds"] = player["PassingTouchdowns"]
-                projection["ints"] = player["PassingInterceptions"]
-                projection["rush_yds"] = player["RushingYards"]
-                projection["receptions"] = player["Receptions"]
-                projection["rec_yds"] = player["ReceivingYards"]
-                projection["fumbles"] = player["Fumbles"]
-                projection["tds"] = player["Touchdowns"]
-                projection["two_pt_conv"] = 0
-                projection["def_pts_allowed"] = 0
-                projection["def_sacks"] = 0
-                projection["def_fumble_rec"] = 0
-                projection["def_ints"] = 0
-                projection["def_blk_kicks"] = 0
-                projection["def_safeties"] = 0
-                projection["def_tds_scored"] = 0
-                projection["score"] = score
+                projection["stats"] = {}
+                projection["stats"]["pass_yds"] = player["PassingYards"]
+                projection["stats"]["pass_tds"] = player["PassingTouchdowns"]
+                projection["stats"]["ints"] = player["PassingInterceptions"]
+                projection["stats"]["rush_yds"] = player["RushingYards"]
+                projection["stats"]["receptions"] = player["Receptions"]
+                projection["stats"]["rec_yds"] = player["ReceivingYards"]
+                projection["stats"]["fumbles"] = player["Fumbles"]
+                projection["stats"]["tds"] = player["Touchdowns"]
+                projection["stats"]["two_pt_conv"] = 0
+                projection["stats"]["def_pts_allowed"] = 0
+                projection["stats"]["def_sacks"] = 0
+                projection["stats"]["def_fumble_rec"] = 0
+                projection["stats"]["def_ints"] = 0
+                projection["stats"]["def_blk_kicks"] = 0
+                projection["stats"]["def_safeties"] = 0
+                projection["stats"]["def_tds_scored"] = 0
+                projection["stats"]["score"] = score
                 projection_inserts.append(projection)
                 
                 print(f"inserted new projection for {player["Name"]} for week {projection_week}")
@@ -135,38 +137,38 @@ def get_player_projections():
                 "week": projection_week
             })
             update = 0
-            if found_projection["def_pts_allowed"] != player["PointsAllowed"]:
+            if found_projection["stats"]["def_pts_allowed"] != player["PointsAllowed"]:
                 update = 1
-            if found_projection["def_sacks"] != player["Sacks"]:
+            if found_projection["stats"]["def_sacks"] != player["Sacks"]:
                 update = 1
-            if found_projection["def_fumble_rec"] != player["FumblesRecovered"]:
+            if found_projection["stats"]["def_fumble_rec"] != player["FumblesRecovered"]:
                 update = 1    
-            if found_projection["def_ints"] != player["Interceptions"]:
+            if found_projection["stats"]["def_ints"] != player["Interceptions"]:
                 update = 1     
-            if found_projection["def_blk_kicks"] != player["BlockedKicks"]:
+            if found_projection["stats"]["def_blk_kicks"] != player["BlockedKicks"]:
                 update = 1    
-            if found_projection["def_safeties"] != player["Safeties"]:
+            if found_projection["stats"]["def_safeties"] != player["Safeties"]:
                 update = 1    
-            if found_projection["def_tds_scored"] != player["TouchdownsScored"]:
+            if found_projection["stats"]["def_tds_scored"] != player["TouchdownsScored"]:
                 update = 1      
 
             if update == 1:
                 player_projections.update_one(
                     {"_id": ObjectId(found_projection["_id"])},
                     {"$set": {
-                        "def_pts_allowed": player["PointsAllowed"],
-                        "def_sacks": player["Sacks"],
-                        "def_fumble_rec": player["FumblesRecovered"],
-                        "def_ints": player["Interceptions"],
-                        "def_blk_kicks": player["BlockedKicks"],
-                        "def_safeties": player["Safeties"],
-                        "def_tds_scored": player["TouchdownsScored"],
-                        "score": score
+                        "stats.def_pts_allowed": player["PointsAllowed"],
+                        "stats.def_sacks": player["Sacks"],
+                        "stats.def_fumble_rec": player["FumblesRecovered"],
+                        "stats.def_ints": player["Interceptions"],
+                        "stats.def_blk_kicks": player["BlockedKicks"],
+                        "stats.def_safeties": player["Safeties"],
+                        "stats.def_tds_scored": player["TouchdownsScored"],
+                        "stats.score": score
                     }}
                 )       
-                print(f"updated projection for {player["Name"]} for week {projection_week}")
+                print(f"updated projection for {player["Team"]} for week {projection_week}")
             else:
-                print(f"no projection change for {player["Name"]} for week {projection_week}")
+                print(f"no projection change for {player["Team"]} for week {projection_week}")
                     
         else:
             projection = {}
@@ -174,28 +176,30 @@ def get_player_projections():
             projection["player_name"] = player["Team"] + " Defense"
             projection["team_id"] = player["TeamID"]
             projection["team_abbv"] = player["Team"]
+            projection["sport"] = "NFL"
             projection["season"] = projection_season
             projection["week"] = projection_week
             projection["opponent"] = player["Opponent"]
             projection["opponent_team_id"] = player["OpponentID"]
             projection["location"] = player["HomeOrAway"]
-            projection["pass_yds"] = 0
-            projection["pass_tds"] = 0
-            projection["ints"] = 0
-            projection["rush_yds"] = 0
-            projection["receptions"] = 0
-            projection["rec_yds"] = 0
-            projection["fumbles"] = 0
-            projection["tds"] = 0
-            projection["two_pt_conv"] = 0
-            projection["def_pts_allowed"] = player["PointsAllowed"]
-            projection["def_sacks"] = player["Sacks"]
-            projection["def_fumble_rec"] = player["FumblesRecovered"]
-            projection["def_ints"] = player["Interceptions"]
-            projection["def_blk_kicks"] = player["BlockedKicks"]
-            projection["def_safeties"] = player["Safeties"]
-            projection["def_tds_scored"] = player["TouchdownsScored"]
-            projection["score"] = score
+            projection["stats"] = {}
+            projection["stats"]["pass_yds"] = 0
+            projection["stats"]["pass_tds"] = 0
+            projection["stats"]["ints"] = 0
+            projection["stats"]["rush_yds"] = 0
+            projection["stats"]["receptions"] = 0
+            projection["stats"]["rec_yds"] = 0
+            projection["stats"]["fumbles"] = 0
+            projection["stats"]["tds"] = 0
+            projection["stats"]["two_pt_conv"] = 0
+            projection["stats"]["def_pts_allowed"] = player["PointsAllowed"]
+            projection["stats"]["def_sacks"] = player["Sacks"]
+            projection["stats"]["def_fumble_rec"] = player["FumblesRecovered"]
+            projection["stats"]["def_ints"] = player["Interceptions"]
+            projection["stats"]["def_blk_kicks"] = player["BlockedKicks"]
+            projection["stats"]["def_safeties"] = player["Safeties"]
+            projection["stats"]["def_tds_scored"] = player["TouchdownsScored"]
+            projection["stats"]["score"] = score
             projection_inserts.append(projection)
             
             print(f"inserted new projection for {player["Team"]} for week {projection_week}")
