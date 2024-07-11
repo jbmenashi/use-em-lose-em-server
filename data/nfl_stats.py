@@ -55,6 +55,8 @@ def get_player_game_logs():
                 update = 1    
             if found_game_log["tds"] != player["Touchdowns"]:
                 update = 1    
+            if found_game_log["yahoo_pts"] != player["FantasyPointsYahoo"]:
+                update = 1  
 
             if update == 1:
                 nfl_game_logs.update_one(
@@ -67,7 +69,8 @@ def get_player_game_logs():
                         "receptions": player["Receptions"],
                         "rec_yds": player["ReceivingYards"],
                         "fumbles": player["Fumbles"],
-                        "tds": player["Touchdowns"]
+                        "tds": player["Touchdowns"],
+                        "yahoo_pts": player["FantasyPointsYahoo"]
                     }}
                 )       
                 print(f"updated {player["Name"]}")
@@ -100,6 +103,7 @@ def get_player_game_logs():
                 game_log["def_blk_kicks"] = 0
                 game_log["def_safeties"] = 0
                 game_log["def_tds_scored"] = 0
+                game_log["yahoo_pts"] = player["FantasyPointsYahoo"]
                 
                 game_log_inserts.append(game_log)
                 
@@ -133,7 +137,9 @@ def get_player_game_logs():
             if found_game_log["def_safeties"] != player["Safeties"]:
                 update = 1    
             if found_game_log["def_tds_scored"] != player["TouchdownsScored"]:
-                update = 1    
+                update = 1   
+            if found_game_log["yahoo_pts"] != player["FantasyPointsYahoo"]:
+                update = 1  
 
             if update == 1:
                 nfl_game_logs.update_one(
@@ -146,6 +152,7 @@ def get_player_game_logs():
                         "def_blk_kicks": player["BlockedKicks"],
                         "def_safeties": player["Safeties"],
                         "def_tds_scored": player["TouchdownsScored"],
+                        "yahoo_pts": player["FantasyPointsYahoo"]
                     }}
                 )       
                 print(f"updated {player["Team"]}")
@@ -177,6 +184,7 @@ def get_player_game_logs():
             game_log["def_blk_kicks"] = player["BlockedKicks"]
             game_log["def_safeties"] = player["Safeties"]
             game_log["def_tds_scored"] = player["TouchdownsScored"]
+            game_log["yahoo_pts"] = player["FantasyPointsYahoo"]
             
             game_log_inserts.append(game_log)
             
@@ -215,7 +223,8 @@ def season_stats(player_ids):
                     'total_def_ints': { '$sum': '$def_ints' },
                     'total_def_blk_kicks': { '$sum': '$def_blk_kicks' },
                     'total_def_safeties': { '$sum': '$def_safeties' },
-                    'total_def_tds_scored': { '$sum': '$def_tds_scored' }
+                    'total_def_tds_scored': { '$sum': '$def_tds_scored' },
+                    'total_yahoo_pts': { '$sum': '$yahoo_pts' }
                 }
             }
         ])
@@ -250,6 +259,7 @@ def season_stats(player_ids):
                         "stats.def_blk_kicks": result_obj["total_def_blk_kicks"],
                         "stats.def_safeties": result_obj["total_def_safeties"],
                         "stats.def_tds_scored": result_obj["total_def_tds_scored"],
+                        "stats.yahoo_pts": result_obj["total_yahoo_pts"]
                     }}
                 )       
                 print(f"updated season stats for player {updated_player_id}")           
@@ -276,6 +286,7 @@ def season_stats(player_ids):
             season_stats["stats"]["def_blk_kicks"] = result_obj["total_def_blk_kicks"]        
             season_stats["stats"]["def_safeties"] = result_obj["total_def_safeties"]        
             season_stats["stats"]["def_tds_scored"] = result_obj["total_def_tds_scored"]              
+            season_stats["stats"]["yahoo_pts"] = result_obj["total_yahoo_pts"]              
             new_season_stats.append(season_stats)
             print(f"Inserting new season stats for player {updated_player_id}")
     
