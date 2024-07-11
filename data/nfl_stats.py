@@ -289,12 +289,27 @@ def update_lineups(playerIds):
         for lineup in found_lineups:
             print(f"found selection for {player} in lineup {lineup["_id"]}")
             league = leagues.find_one({"_id": ObjectId(lineup["league_id"])})
-            style = league["style"]
             scoring = league["scoring"]["statistics"]
 
             game_log_fantasy_stats = {}
             for k, v in scoring.items():
-                game_log_fantasy_stats[k] = game_log[k] * v
+                if k == "def_pts_allowed":
+                    if game_log[k] == 0:
+                        game_log_fantasy_stats[k] = 10
+                    elif game_log[k] > 0 and game_log[k] < 7:
+                        game_log_fantasy_stats[k] = 7
+                    elif game_log[k] >= 7 and game_log[k] < 14:
+                        game_log_fantasy_stats[k] = 4
+                    elif game_log[k] >= 14 and game_log[k] < 21:
+                        game_log_fantasy_stats[k] = 1
+                    elif game_log[k] >= 21 and game_log[k] < 28:
+                        game_log_fantasy_stats[k] = 0
+                    elif game_log[k] >= 28 and game_log[k] < 35:
+                        game_log_fantasy_stats[k] = -1
+                    else:
+                        game_log_fantasy_stats[k] = -4
+                else:
+                    game_log_fantasy_stats[k] = game_log[k] * v
                 # defensive points allowed
 
             fantasy_stats_dict = { k:v for (k,v) in game_log_fantasy_stats.items()}
