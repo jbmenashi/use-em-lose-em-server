@@ -69,7 +69,7 @@ def generate_schedule():
                     for key, value in league["roster"]["positions"].items():
                         lineup_one_selections.extend([key] * value)
                     
-                    lineup_one_selections = [{"position": item, "locked": False, "index": index} for index, item in enumerate(lineup_one_selections)]
+                    lineup_one_selections = [{"position": item.upper(), "locked": False, "index": index} for index, item in enumerate(lineup_one_selections)]
                     lineup_one["selections"] = lineup_one_selections
                     lineups.insert_one(lineup_one)
 
