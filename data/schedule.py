@@ -43,6 +43,7 @@ def generate_schedule():
                     doc["league_id"] = league["_id"]
                     doc["season"] = league["season"]
                     doc["week"] = week
+                    doc["season_type"] = "REG"
                     doc["team_1_id"] = contestant_ids[i]
                     doc["team_1_name"] = contestant_names[i]
                     doc["team_1_score"] = 0

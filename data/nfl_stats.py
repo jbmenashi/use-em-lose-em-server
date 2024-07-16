@@ -10,7 +10,7 @@ load_dotenv(find_dotenv())
 
 client = MongoClient(os.environ["MONGODB_CONN"])
 
-current_week = 1
+current_week = 18
 current_season = 2023
 
 db = client.ff_db
@@ -158,7 +158,7 @@ def get_player_game_logs():
                 print(f"updated {player["Team"]}")
                 updated_players.append(player["PlayerID"])
             else:
-                print(f"no change for {player["Name"]}")
+                print(f"no change for {player["Team"]}")
                     
         else:
             game_log = {}

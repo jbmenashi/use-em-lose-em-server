@@ -11,7 +11,7 @@ client = MongoClient(os.environ["MONGODB_CONN"])
 db = client.ff_db
 player_projections = db["PlayerProjections"]
 
-projection_season = 2023
+projection_season = 2024
 projection_week = 1
 
 

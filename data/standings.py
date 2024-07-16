@@ -20,7 +20,7 @@ def update_standings():
 
     for league in active_leagues:
         # in each league, get all matchups that are finished
-        finished_matchups = list(matchups.find({"league_id": ObjectId(league["_id"]), "finished": True}))
+        finished_matchups = list(matchups.find({"league_id": ObjectId(league["_id"]), "finished": True, "season_type": "REG"}))
         # and get all the contestants
         league_contestants = list(contestants.find({"league_id": ObjectId(league["_id"])}))
 
