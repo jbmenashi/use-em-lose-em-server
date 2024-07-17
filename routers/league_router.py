@@ -46,12 +46,13 @@ def get_league_router(app):
 
         return json.loads(json_util.dumps(res))
     
-    @router.get("/league/{id}", response_description="Get a single league", response_model=LeagueModel, response_model_by_alias=False)
+    @router.get("/league/{id}", response_description="Get a single league", response_model_by_alias=False)
     async def get_league(id: str, request: Request, user: User = Depends(current_active_user)):
+        print("help")
         if (
             league := await request.app.db["Leagues"].find_one({"_id": ObjectId(id)})
         ) is not None:
-            return league
+            return json.loads(json_util.dumps(league))
         raise HTTPException(status_code=404, detail=f"League {id} not found")
     
     @router.get("/league/schedule/{id}", response_description="Get a schedule for league", response_model_by_alias=False)
@@ -71,14 +72,14 @@ def get_league_router(app):
             list_of_matchups.append(matchup)
 
         if len(list_of_matchups) == 0:
-            raise HTTPException(status_code=404, detail=f"Matchups not found for league {id}")
+            raise HTTPException(status_code=204, detail=f"Matchups not found for league {id}")
         
         return list_of_matchups
     
     @router.get("/league/available/{user_id}", response_description="Get available leagues to join for a user", response_model_by_alias=False)
     async def get_available_leagues(user_id: str, request: Request, user: User = Depends(current_active_user)):
         list_of_leagues = []
-        cursor = request.app.db["Leagues"].find({'$and': [{"locked": False},{"active": False},{"full": False}]})
+        cursor = request.app.db["Leagues"].find({'$and': [{"scheduled": False},{"active": False},{"full": False}]})
         for league in await cursor.to_list(length=100):
             con_cursor = request.app.db["Contestants"].find({'$and': [{"league_id": ObjectId(league["_id"])},{"user_id": ObjectId(user_id)}]})
             con_list = await con_cursor.to_list(length=100)
