@@ -56,6 +56,15 @@ def get_lineup_router(app):
             list_of_lineups.append(con)
 
         return list_of_lineups
+    
+    @router.get("/lineup/contestant/{contestant_id}", response_description="Get week lineup belonging to a contestant", response_model_by_alias=False)
+    async def get_lineup_by_contestant(contestant_id: str, request: Request, week: int = 1, user: User = Depends(current_active_user)):
+        existing_lineup = await request.app.db["Lineups"].find_one({"contestant_id": ObjectId(contestant_id), "week": week})
+
+        if existing_lineup is not None:
+            return json.loads(json_util.dumps(existing_lineup))
+        else:
+            raise HTTPException(status_code=404, detail=f"Lineup not found")
 
     @router.put("/lineup/{id}", response_description="Update a lineup", response_model=LineupModel, response_model_by_alias=False)
     async def update_lineup(id: str, request: Request, user: User = Depends(current_active_user), lineup: UpdateLineupModel = Body(...)):
