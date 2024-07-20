@@ -13,7 +13,7 @@ from auth.users import current_active_user
 
 from routers.league_router import get_league_router
 from routers.contestant_router import get_contestant_router
-from routers.player_router import get_player_router
+from routers.data_router import get_data_router
 from routers.lineup_router import get_lineup_router
 from routers.week_router import get_week_router
 
@@ -52,7 +52,7 @@ app.add_middleware(
 app.include_router(get_users_router(app))
 app.include_router(get_league_router(app), tags=["league"])
 app.include_router(get_contestant_router(app), tags=["contestant"])
-app.include_router(get_player_router(app), tags=["player"])
+app.include_router(get_data_router(app), tags=["data"])
 app.include_router(get_lineup_router(app), tags=["lineup"])
 app.include_router(get_week_router(app), tags=["week"])
 

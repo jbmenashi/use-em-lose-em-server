@@ -71,7 +71,6 @@ def get_lineup_router(app):
         if (existing_lineup := await request.app.db["Lineups"].find_one({"_id": ObjectId(id)})) is not None:
             lineup_contestant = await request.app.db["Contestants"].find_one({"_id": ObjectId(existing_lineup["contestant_id"])})
             lineup_league = await request.app.db["Leagues"].find_one({"_id": ObjectId(existing_lineup["league_id"])})
-            print(lineup_contestant['team_count'])
             league_team_count = lineup_league['team_count']
 
             if lineup_contestant["user_id"] == user.id and existing_lineup["locked"] == False:

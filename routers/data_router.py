@@ -9,7 +9,7 @@ from beanie import PydanticObjectId
 from bson import ObjectId, json_util
 import json
 
-def get_player_router(app):
+def get_data_router(app):
 
     router = APIRouter()
     
@@ -73,8 +73,8 @@ def get_player_router(app):
         request: Request, 
         page: int = 1, 
         limit: int = 25, 
-        position_filter: str | None = None, 
-        team_filter: str | None = None,
+        position: str | None = None, 
+        teamFilter: str | None = None,
         sort_category: str | None = None,
         user: User = Depends(current_active_user)):
         if (existing_contestant := await request.app.db["Contestants"].find_one({"_id": ObjectId(contestant_id)})) is not None:
@@ -93,14 +93,14 @@ def get_player_router(app):
                         "team_id": {"$nin": unavail_team_ids}                
             }
 
-            if position_filter is not None:
-                if position_filter == "FLEX":
+            if position is not None:
+                if position == "FLEX":
                     find_query["position"] = {"$in": ["RB", "WR", "TE"]}
                 else:
-                    find_query["position"] = position_filter
+                    find_query["position"] = position
 
-            if team_filter is not None:
-                find_query["team_abbreviation"] = team_filter
+            if teamFilter is not None:
+                find_query["team_abbreviation"] = teamFilter
 
             if sort_category:
                 if sort_category == "SEASON_PTS":
@@ -115,6 +115,14 @@ def get_player_router(app):
             return json.loads(json_util.dumps(results))
 
         raise HTTPException(status_code=404, detail=f"Contestant {contestant_id} not found")
+    
+    @router.get("/teams/nfl/", response_description="Get all nfl teams for search", response_model_by_alias=False)
+    async def get_nfl_teams(
+        request: Request, 
+        user: User = Depends(current_active_user)):
 
+        results = await request.app.db["Teams"].find({"sport": "NFL"}).to_list(length=100)
+
+        return json.loads(json_util.dumps(results))
 
     return router
