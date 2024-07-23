@@ -50,9 +50,8 @@ def generate_schedule():
                     doc["team_2_id"] = contestant_ids[-i-1]
                     doc["team_2_name"] = contestant_names[-i-1]
                     doc["team_2_score"] = 0
-                    doc["winner"] = 0
-                    doc["loser"] = 0
-                    doc["started"] = False
+                    doc["winner"] = None
+                    doc["loser"] = None
                     doc["finished"] = False
                     matchups.insert_one(doc)
 
