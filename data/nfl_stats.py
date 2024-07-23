@@ -10,8 +10,8 @@ load_dotenv(find_dotenv())
 
 client = MongoClient(os.environ["MONGODB_CONN"])
 
-current_week = 18
-current_season = 2023
+current_week = 1
+current_season = 2024
 
 db = client.ff_db
 nfl_game_logs = db["NFLGameLogs"]
