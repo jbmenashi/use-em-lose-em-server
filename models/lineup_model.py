@@ -49,7 +49,6 @@ class LineupModel(BaseModel):
 
 class UpdateLineupModel(BaseModel):
     selection: Optional[Selection] = None
-    locked: Optional[bool] = None
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,

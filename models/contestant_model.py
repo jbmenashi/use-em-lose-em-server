@@ -4,14 +4,14 @@ from beanie import PydanticObjectId
 
 class UnavailPlayer(BaseModel):
     player_id: int
-    player_first_name: str
-    player_last_name: str
+    first_name: str
+    last_name: str
     team_id: int 
-    team_abbv: str
+    team_abbreviation: str
 
 class UnavailTeam(BaseModel):
     team_id: int 
-    team_abbv: str
+    team_abbreviation: str
 
 class ContestantModel(BaseModel):
     user_id: Optional[PydanticObjectId] = None

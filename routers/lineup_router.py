@@ -67,42 +67,42 @@ def get_lineup_router(app):
             raise HTTPException(status_code=404, detail=f"Lineup not found")
 
     @router.put("/lineup/{id}", response_description="Update a lineup", response_model=LineupModel, response_model_by_alias=False)
-    async def update_lineup(id: str, request: Request, user: User = Depends(current_active_user), lineup: UpdateLineupModel = Body(...)):
+    async def update_lineup(id: str, request: Request, user: User = Depends(current_active_user), selection: dict = {}):
+        print(selection)
         if (existing_lineup := await request.app.db["Lineups"].find_one({"_id": ObjectId(id)})) is not None:
             lineup_contestant = await request.app.db["Contestants"].find_one({"_id": ObjectId(existing_lineup["contestant_id"])})
             lineup_league = await request.app.db["Leagues"].find_one({"_id": ObjectId(existing_lineup["league_id"])})
             league_team_count = lineup_league['team_count']
 
             if lineup_contestant["user_id"] == user.id and existing_lineup["locked"] == False:
-                lineup = { k: v for k, v in lineup.model_dump(by_alias=True).items() if v is not None } 
 
-                for selection in existing_lineup["selections"]:
-                    if selection["index"] == lineup["selection"]["index"] and selection["position"] == lineup["selection"]["position"]:
-                        if selection["locked"] == False:
+                for sel in existing_lineup["selections"]:
+                    if sel["index"] == selection["index"] and sel["position"] == selection["position"]:
+                        if sel["locked"] == False:
                             updated_lineup = await request.app.db["Lineups"].find_one_and_update(
                                 {"_id": ObjectId(id)}, 
                                 {"$set": {
-                                    f"selections.{lineup["selection"]["index"]}.player_id": lineup["selection"]["player_id"],
-                                    f"selections.{lineup["selection"]["index"]}.first_name": lineup["selection"]["first_name"],
-                                    f"selections.{lineup["selection"]["index"]}.last_name": lineup["selection"]["last_name"],
-                                    f"selections.{lineup["selection"]["index"]}.team_id": lineup["selection"]["team_id"],
-                                    f"selections.{lineup["selection"]["index"]}.team_abbreviation": lineup["selection"]["team_abbreviation"]
+                                    f"selections.{selection["index"]}.player_id": selection["player_id"],
+                                    f"selections.{selection["index"]}.first_name": selection["first_name"],
+                                    f"selections.{selection["index"]}.last_name": selection["last_name"],
+                                    f"selections.{selection["index"]}.team_id": selection["team_id"],
+                                    f"selections.{selection["index"]}.team_abbreviation": selection["team_abbreviation"]
                                     }}, 
                                 return_document=ReturnDocument.AFTER
                             )
                             contestant_team_count = lineup_contestant['team_count']
-                            if lineup["selection"]["player_id"] is not None: # new player and team to unavailables                
+                            if selection["player_id"] is not None: # new player and team to unavailables                
                                 # if the team is already in the team count
-                                if lineup["selection"]["team_abbreviation"] in contestant_team_count.keys():
+                                if selection["team_abbreviation"] in contestant_team_count.keys():
                                     # if the team count has hit the limit
-                                    if contestant_team_count[lineup["selection"]["team_abbreviation"]] + 1 == league_team_count:
+                                    if contestant_team_count[selection["team_abbreviation"]] + 1 == league_team_count:
                                         add_to_unavail_teams = await request.app.db["Contestants"].find_one_and_update(
                                             {"_id": lineup_contestant["_id"]},
                                             {"$push": 
                                                 {
                                                     "unavailable_teams": {
-                                                        "team_id": lineup["selection"]["team_id"],
-                                                        "team_abbreviation": lineup["selection"]["team_abbreviation"]
+                                                        "team_id": selection["team_id"],
+                                                        "team_abbreviation": selection["team_abbreviation"]
                                                     }
                                                 }
                                             }
@@ -112,7 +112,7 @@ def get_lineup_router(app):
                                             {"_id": lineup_contestant["_id"]},
                                             {"$inc": 
                                                 {
-                                                    f"team_count.{lineup["selection"]["team_abbreviation"]}": 1
+                                                    f"team_count.{selection["team_abbreviation"]}": 1
                                                 }
                                             }
                                         )
@@ -121,7 +121,7 @@ def get_lineup_router(app):
                                             {"_id": lineup_contestant["_id"]},
                                             {"$inc": 
                                                 {
-                                                    f"team_count.{lineup["selection"]["team_abbreviation"]}": 1
+                                                    f"team_count.{selection["team_abbreviation"]}": 1
                                                 }
                                             }
                                         )
@@ -131,27 +131,27 @@ def get_lineup_router(app):
                                     {"$push": 
                                         {
                                             "unavailable_players": {
-                                                "player_id": lineup["selection"]["player_id"],
-                                                "first_name": lineup["selection"]["first_name"],
-                                                "last_name": lineup["selection"]["last_name"],
-                                                "team_id": lineup["selection"]["team_id"],
-                                                "team_abbreviation": lineup["selection"]["team_abbreviation"]
+                                                "player_id": selection["player_id"],
+                                                "first_name": selection["first_name"],
+                                                "last_name": selection["last_name"],
+                                                "team_id": selection["team_id"],
+                                                "team_abbreviation": selection["team_abbreviation"]
                                             }
                                         }
                                     }
                                 )
 
-                            if "player_id" in selection.keys(): # existing player and team removed from unavailables
+                            if "player_id" in sel.keys(): # existing player and team removed from unavailables
                                 
                                 # if the team that's being removed is at the team count
-                                if contestant_team_count[selection["team_abbreviation"]] == league_team_count:
+                                if contestant_team_count[sel["team_abbreviation"]] == league_team_count:
                                     # remove from unavailable teams
                                     remove_from_unavail_teams = await request.app.db["Contestants"].find_one_and_update(
                                         {"_id": lineup_contestant["_id"]},
                                         {"$pull": 
                                             {
                                                 "unavailable_teams": {
-                                                    "team_id": selection["team_id"]
+                                                    "team_id": sel["team_id"]
                                                 }
                                             }
                                         }
@@ -161,7 +161,7 @@ def get_lineup_router(app):
                                             {"_id": lineup_contestant["_id"]},
                                             {"$inc": 
                                                 {
-                                                    f"team_count.{selection["team_abbreviation"]}": -1
+                                                    f"team_count.{sel["team_abbreviation"]}": -1
                                                 }
                                             }
                                         )
@@ -170,7 +170,7 @@ def get_lineup_router(app):
                                             {"_id": lineup_contestant["_id"]},
                                             {"$inc": 
                                                 {
-                                                    f"team_count.{selection["team_abbreviation"]}": -1
+                                                    f"team_count.{sel["team_abbreviation"]}": -1
                                                 }
                                             }
                                         )
@@ -180,7 +180,7 @@ def get_lineup_router(app):
                                     {"$pull": 
                                         {
                                             "unavailable_players": {
-                                                "player_id": selection["player_id"]
+                                                "player_id": sel["player_id"]
                                             }
                                         }
                                     }
@@ -191,8 +191,10 @@ def get_lineup_router(app):
                             raise HTTPException(status_code=400, detail=f"This selection slot is locked")
             else:
                 raise HTTPException(status_code=401, detail=f"Not authorized to edit Lineup {id}")
-
-        raise HTTPException(status_code=404, detail=f"Lineup {id} not found")
+        else:
+            raise HTTPException(status_code=404, detail=f"Lineup {id} not found")
+        
+        return json.loads(json_util.dumps(selection))
 
     # @router.delete("/lineup/{id}", response_description="Delete lineup")
     # async def delete_lineup(id: str, request: Request, user: User = Depends(current_active_user)):

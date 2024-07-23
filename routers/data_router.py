@@ -87,6 +87,8 @@ def get_data_router(app):
             for team in existing_contestant["unavailable_teams"]:
                 unavail_team_ids.append(team["team_id"])
 
+            print(unavail_player_ids, unavail_team_ids)
+
             find_query = {
                         "status": "Active",
                         "player_id": {"$nin": unavail_player_ids},
