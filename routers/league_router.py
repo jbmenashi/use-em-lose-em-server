@@ -65,9 +65,9 @@ def get_league_router(app):
             matchup["league_id"] = str(matchup["league_id"]["$oid"])
             matchup["team_1_id"] = str(matchup["team_1_id"]["$oid"])
             matchup["team_2_id"] = str(matchup["team_2_id"]["$oid"])
-            if matchup["winner"] != 0:
+            if matchup["winner"] != None:
                 matchup["winner"] = str(matchup["winner"]["$oid"])
-            if matchup["loser"] != 0:
+            if matchup["loser"] != None:
                 matchup["loser"] = str(matchup["loser"]["$oid"])
             list_of_matchups.append(matchup)
 
