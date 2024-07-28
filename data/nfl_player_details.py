@@ -13,56 +13,64 @@ playerDetails = db["PlayerDetails"]
 def get_player_details():
     docs = []
 
-    res = requests.get("https://api.sportsdata.io/v3/nfl/scores/json/PlayersByAvailable?key=10fd23b6dc3d47f486e1159d2bf02e2b")
+    url = "https://tank01-nfl-live-in-game-real-time-statistics-nfl.p.rapidapi.com/getNFLPlayerList"
 
-    for player in res.json():
-        if player_exists := playerDetails.find_one({"player_id": player["PlayerID"]}) is not None:
-            found_player = playerDetails.find_one({"player_id": player["PlayerID"]}) 
+    headers = {
+        "x-rapidapi-key": os.environ["RAPID_API_KEY"],
+        "x-rapidapi-host": "tank01-nfl-live-in-game-real-time-statistics-nfl.p.rapidapi.com"
+    }
+
+    res = requests.get(url, headers=headers)
+
+
+
+    for player in res.json()["body"]:
+        if player_exists := playerDetails.find_one({"player_id": int(player["playerID"])}) is not None:
+            found_player = playerDetails.find_one({"player_id": int(player["playerID"])}) 
             update = 0
-            if found_player["first_name"] != player["FirstName"]:
+            if found_player["player_name"] != player["longName"]:
                 update = 1
-            if found_player["last_name"] != player["LastName"]:
+            if found_player["status"] != player["injury"]["designation"]:
                 update = 1
-            if found_player["status"] != player["Status"]:
+            if found_player["team_id"] != int(player["teamID"]):
                 update = 1
-            if found_player["team_id"] != player["TeamID"]:
+            if found_player["team_abbreviation"] != player["team"]:
                 update = 1
-            if found_player["team_abbreviation"] != player["Team"]:
+            if found_player["jersey_num"] != player["jerseyNum"]:
                 update = 1
-            if found_player["jersey_num"] != player["Number"]:
-                update = 1
-            if found_player["position"] != player["Position"]:
+            if found_player["position"] != player["pos"]:
                 update = 1
 
             if update == 1:
                 playerDetails.update_one(
                     {"_id": ObjectId(found_player["_id"])},
                     {"$set": {
-                        "first_name": player["FirstName"],
-                        "last_name": player["LastName"],
-                        "status": player["Status"],
-                        "team_id": player["TeamID"],
-                        "team_abbreviation": player["Team"],
-                        "jersey_num": player["Number"],
-                        "position": player["Position"],
+                        "player_name": player["longName"],
+                        "status": player["injury"]["designation"],
+                        "team_id": player["teamID"],
+                        "team_abbreviation": player["team"],
+                        "jersey_num": player["jerseyNum"],
+                        "position": player["pos"],
                     }}
                 )       
-                print(f"updated {player["FirstName"]} {player["LastName"]}")
+                print(f"updated {player["longName"]}")
         else:
-            if player["Status"] == "Active" and player["Position"] in ["QB", "RB", "WR", "TE"]:
+            if player["pos"] in ["QB", "RB", "WR", "TE", "FB"]:
                 doc = {}
                 doc["sport"] = "NFL"
-                doc["player_id"] = player["PlayerID"]
-                doc["first_name"] = player["FirstName"]
-                doc["last_name"] = player["LastName"]
-                doc["status"] = player["Status"]
-                doc["team_id"] = player["TeamID"]
-                doc["team_abbreviation"] = player["Team"]
-                doc["jersey_num"] = player["Number"]
-                doc["position_category"] = player["Position"]
-                doc["position"] = player["Position"]
+                doc["player_id"] = int(player["playerID"])
+                doc["player_name"] = player["longName"]
+                doc["status"] = player["injury"]["designation"]
+                doc["team_id"] = int(player["teamID"])
+                doc["team_abbreviation"] = player["team"]
+                doc["jersey_num"] = player["jerseyNum"]
+                doc["position"] = player["pos"]
+                if "espnHeadshot" in player.keys():
+                    doc["logo"] = player["espnHeadshot"]
+                else:
+                    doc["logo"] = ""
                 docs.append(doc)
-                print(f"inserted {player["FirstName"]} {player["LastName"]}")
+                print(f"inserted {player["longName"]}")
 
     if len(docs) > 0:
         playerDetails.insert_many(docs) 
