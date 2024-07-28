@@ -9,8 +9,7 @@ class ProjectionsModel(BaseModel):
 
 class PlayerModel(BaseModel):
     player_id: int = Field(...)
-    first_name: str = Field(...)
-    last_name: str = Field(...)
+    player_name: str = Field(...)
     status: str = Field(...)
     team_id: int = Field(...)
     team_abbv: str = Field(...)

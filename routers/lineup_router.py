@@ -83,8 +83,7 @@ def get_lineup_router(app):
                                 {"_id": ObjectId(id)}, 
                                 {"$set": {
                                     f"selections.{selection["index"]}.player_id": selection["player_id"],
-                                    f"selections.{selection["index"]}.first_name": selection["first_name"],
-                                    f"selections.{selection["index"]}.last_name": selection["last_name"],
+                                    f"selections.{selection["index"]}.player_name": selection["player_name"],
                                     f"selections.{selection["index"]}.team_id": selection["team_id"],
                                     f"selections.{selection["index"]}.team_abbreviation": selection["team_abbreviation"]
                                     }}, 
@@ -132,8 +131,7 @@ def get_lineup_router(app):
                                         {
                                             "unavailable_players": {
                                                 "player_id": selection["player_id"],
-                                                "first_name": selection["first_name"],
-                                                "last_name": selection["last_name"],
+                                                "player_name": selection["player_name"],
                                                 "team_id": selection["team_id"],
                                                 "team_abbreviation": selection["team_abbreviation"]
                                             }

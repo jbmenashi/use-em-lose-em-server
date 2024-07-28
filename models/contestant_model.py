@@ -4,8 +4,7 @@ from beanie import PydanticObjectId
 
 class UnavailPlayer(BaseModel):
     player_id: int
-    first_name: str
-    last_name: str
+    player_name: str
     team_id: int 
     team_abbreviation: str
 
