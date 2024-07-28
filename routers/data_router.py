@@ -90,9 +90,8 @@ def get_data_router(app):
             print(unavail_player_ids, unavail_team_ids)
 
             find_query = {
-                        "status": "Active",
-                        "player_id": {"$nin": unavail_player_ids},
-                        "team_id": {"$nin": unavail_team_ids}                
+                    "player_id": {"$nin": unavail_player_ids},
+                    "team_id": {"$nin": unavail_team_ids}                
             }
 
             if position is not None:
@@ -111,7 +110,6 @@ def get_data_router(app):
                     sort_query = {"projection.stats.score": -1}
             else:
                 sort_query = {"projection.stats.score": -1}
-
             results = await request.app.db["NFLPlayerSearchView"].find(find_query).sort(sort_query).skip((page - 1) * limit).limit(limit).to_list(length=limit)
 
             return json.loads(json_util.dumps(results))

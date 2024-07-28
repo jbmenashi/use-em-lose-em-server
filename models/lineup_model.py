@@ -12,8 +12,7 @@ from beanie import PydanticObjectId
 
 class Selection(BaseModel):
     player_id: Optional[int] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    player_name: Optional[str] = None
     team_id: Optional[int] = None
     team_abbreviation: Optional[str] = None
     position: str = Field(...)
