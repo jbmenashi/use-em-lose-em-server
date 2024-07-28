@@ -29,6 +29,7 @@ def get_teams():
     for team in res.json()["body"]:
         team_def_doc = {}
         team_def_doc["sport"] = "NFL"
+        team_def_doc["player_id"] = int(team["teamID"])
         team_def_doc["team_id"] = int(team["teamID"])
         team_def_doc["player_name"] = team["teamAbv"] + " Defense"
         team_def_doc["status"] = "Active"
