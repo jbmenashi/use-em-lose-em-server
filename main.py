@@ -23,23 +23,22 @@ load_dotenv(find_dotenv())
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.client = motor.motor_asyncio.AsyncIOMotorClient(os.environ["MONGODB_URI"], uuidRepresentation="standard")
-    app.db = app.client.ff_db
-    await init_beanie(
-        database=app.db,  
-        document_models=[
-            User,  
-            AccessToken
-        ]
-    )
+    # app.client = motor.motor_asyncio.AsyncIOMotorClient(os.environ["MONGODB_URI"], uuidRepresentation="standard")
+    # app.db = app.client.ff_db
+    # await init_beanie(
+    #     database=app.db,  
+    #     document_models=[
+    #         User,  
+    #         AccessToken
+    #     ]
+    # )
     yield
-    app.client.close()
+    # app.client.close()
 
 app = FastAPI(lifespan=lifespan)
 
 origins = [
-    "http://localhost:5173",
-    "http://localhost"
+    "*"
 ]
 
 app.add_middleware(
