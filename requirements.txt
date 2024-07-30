@@ -1,11 +1,8 @@
-fastapi
-fastapi-users
-pymongo
-motor
-python-dotenv
-uvicorn
-pydantic
-
-# need to combine these?
-fastapi-users
-beanie
+fastapi==0.109.0
+fastapi-users==12.1.2
+pymongo==4.6.1
+motor==3.3.2
+python-dotenv==1.0.0
+uvicorn==0.26.0
+pydantic==2.5.3
+beanie==1.24.0
