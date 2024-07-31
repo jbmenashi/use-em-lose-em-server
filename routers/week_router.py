@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, Depends
 from auth.users import User, current_active_user
 from bson import ObjectId, json_util
 import json
+import sys
 
 from datetime import datetime
 
@@ -11,9 +12,9 @@ def get_week_router(app):
   
     @router.get("/currentweeks", response_description="Get current weeks for all sports", response_model_by_alias=False)
     async def get_current_weeks(request: Request, user: User = Depends(current_active_user)):
-        print(current_active_user)
-        print(request)
-        print(user)
+        sys.stdout.write(current_active_user)
+        sys.stdout.write(request)
+        sys.stdout.write(user)
         current_date = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
         current_weeks = {}
         cursor = request.app.db["Weeks"].find({"start_date": {"$lt": current_date}, "end_date": {"$gt": current_date}})
