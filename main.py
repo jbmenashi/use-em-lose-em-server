@@ -58,7 +58,7 @@ app.include_router(get_lineup_router(app), tags=["lineup"])
 app.include_router(get_week_router(app), tags=["week"])
 app.include_router(get_matchup_router(app), tags=["matchup"])
 
-async def log_cookies(request: Request):
+def log_cookies(request: Request):
     cookies = request.cookies
     print(f"Cookies: {cookies}")
 
