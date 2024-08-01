@@ -6,6 +6,7 @@ import uvicorn
 from beanie import init_beanie
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+import sys
 
 from auth.db import User, AccessToken
 from auth.routers import get_users_router
@@ -60,7 +61,7 @@ app.include_router(get_matchup_router(app), tags=["matchup"])
 
 def log_cookies(request: Request):
     cookies = request.cookies
-    print(f"Cookies: {cookies}")
+    sys.stdout(f"Cookies: {cookies}")
 
 @app.get("/authenticated-route", tags=["test"])
 async def authenticated_route(request: Request, user: User = Depends(current_active_user) ):
