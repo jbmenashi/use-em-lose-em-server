@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
 from dotenv import load_dotenv, find_dotenv
 import motor.motor_asyncio
 import os
@@ -58,8 +58,13 @@ app.include_router(get_lineup_router(app), tags=["lineup"])
 app.include_router(get_week_router(app), tags=["week"])
 app.include_router(get_matchup_router(app), tags=["matchup"])
 
+async def log_cookies(request: Request):
+    cookies = request.cookies
+    print(f"Cookies: {cookies}")
+
 @app.get("/authenticated-route", tags=["test"])
-async def authenticated_route(user: User = Depends(current_active_user)):
+async def authenticated_route(request: Request, user: User = Depends(current_active_user) ):
+    log_cookies(request)
     return {"message": f"Hello {user.email}!"}
 
 
