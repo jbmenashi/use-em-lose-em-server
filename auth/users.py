@@ -9,6 +9,16 @@ from fastapi_users.db import BeanieUserDatabase, ObjectIDIDMixin
 
 from auth.db import User, get_user_db, AccessToken, get_access_token_db
 
+from fastapi_users.password import PasswordHelper
+from pwdlib import PasswordHash, exceptions
+from pwdlib.hashers.argon2 import Argon2Hasher
+
+password_hash = PasswordHash((
+    Argon2Hasher(),
+))
+
+password_helper = PasswordHelper(password_hash)
+
 SECRET = "SECRET"
 
 class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
@@ -30,7 +40,7 @@ class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
 
 
 async def get_user_manager(user_db: BeanieUserDatabase = Depends(get_user_db)):
-    yield UserManager(user_db)
+    yield UserManager(user_db, password_helper)
 
 
 #bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
