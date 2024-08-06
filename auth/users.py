@@ -43,13 +43,13 @@ async def get_user_manager(user_db: BeanieUserDatabase = Depends(get_user_db)):
     yield UserManager(user_db, password_helper)
 
 
-#bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
-cookie_transport = CookieTransport(cookie_max_age=3600)
+bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
+#cookie_transport = CookieTransport(cookie_max_age=3600)
 
 def get_database_strategy(access_token_db: AccessTokenDatabase[AccessToken] = Depends(get_access_token_db)) -> DatabaseStrategy:
     return DatabaseStrategy(access_token_db, lifetime_seconds=3600)
 
-auth_backend = AuthenticationBackend(name="cookie_db", transport=cookie_transport, get_strategy=get_database_strategy)
+auth_backend = AuthenticationBackend(name="bearer_db", transport=bearer_transport, get_strategy=get_database_strategy)
 
 fastapi_users = FastAPIUsers[User, PydanticObjectId](get_user_manager, [auth_backend])
 
