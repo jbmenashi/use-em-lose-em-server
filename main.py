@@ -40,7 +40,7 @@ app = FastAPI(lifespan=lifespan)
 origins = [
     "http://localhost:5173",
     "http://localhost",
-    "https://use-em-lose-em-client-1b9a368419b2.herokuapp.com/"
+    "https://use-em-lose-em-client-1b9a368419b2.herokuapp.com"
 ]
 
 app.add_middleware(
