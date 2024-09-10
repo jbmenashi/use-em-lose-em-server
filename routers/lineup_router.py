@@ -66,7 +66,7 @@ def get_lineup_router(app):
         else:
             raise HTTPException(status_code=404, detail=f"Lineup not found")
 
-    @router.put("/lineup/{id}", response_description="Update a lineup", response_model=LineupModel, response_model_by_alias=False)
+    @router.put("/lineup/{id}", response_description="Update a lineup", response_model_by_alias=False)
     async def update_lineup(id: str, request: Request, user: User = Depends(current_active_user), selection: dict = {}):
         print(selection)
         if (existing_lineup := await request.app.db["Lineups"].find_one({"_id": ObjectId(id)})) is not None:
@@ -75,9 +75,8 @@ def get_lineup_router(app):
             league_team_count = lineup_league['team_count']
 
             if lineup_contestant["user_id"] == user.id and existing_lineup["locked"] == False:
-
                 for sel in existing_lineup["selections"]:
-                    if sel["index"] == selection["index"] and sel["position"] == selection["position"]:
+                    if sel["index"] == selection["index"] and sel["position"].upper() == selection["position"].upper():
                         if sel["locked"] == False:
                             updated_lineup = await request.app.db["Lineups"].find_one_and_update(
                                 {"_id": ObjectId(id)}, 
@@ -184,7 +183,7 @@ def get_lineup_router(app):
                                     }
                                 )                           
 
-                            return updated_lineup
+                            return json.loads(json_util.dumps(updated_lineup))
                         else:
                             raise HTTPException(status_code=400, detail=f"This selection slot is locked")
             else:

@@ -12,16 +12,16 @@ def get_week_router(app):
   
     @router.get("/currentweeks", response_description="Get current weeks for all sports", response_model_by_alias=False)
     async def get_current_weeks(request: Request, user: User = Depends(current_active_user)):
-        current_date = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        current_date = datetime.now().strftime('%Y-%m-%d')
         current_weeks = {}
-        cursor = request.app.db["Weeks"].find({"start_date": {"$lt": current_date}, "end_date": {"$gt": current_date}})
+        cursor = request.app.db["Weeks"].find({"start_date": {"$lte": current_date}, "end_date": {"$gte": current_date}})
         for item in await cursor.to_list(length=100):
             item = json.loads(json_util.dumps(item))
             item_season = f"{item["sport"].lower()}_season"
             current_weeks[item_season] = item["season"]
             item_week = f"{item["sport"].lower()}_week"
             current_weeks[item_week] = item["week_number"]
-
+            
         return current_weeks
     
     return router
