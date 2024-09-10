@@ -3,6 +3,7 @@ from auth.users import User, current_active_user
 from bson import ObjectId, json_util
 import json
 import sys
+import pytz
 
 from datetime import datetime
 
@@ -12,7 +13,8 @@ def get_week_router(app):
   
     @router.get("/currentweeks", response_description="Get current weeks for all sports", response_model_by_alias=False)
     async def get_current_weeks(request: Request, user: User = Depends(current_active_user)):
-        current_date = datetime.now().strftime('%Y-%m-%d')
+        pacific_tz = pytz.timezone('US/Pacific')
+        current_date = datetime.now(pacific_tz).strftime('%Y-%m-%d')
         current_weeks = {}
         cursor = request.app.db["Weeks"].find({"start_date": {"$lte": current_date}, "end_date": {"$gte": current_date}})
         for item in await cursor.to_list(length=100):
