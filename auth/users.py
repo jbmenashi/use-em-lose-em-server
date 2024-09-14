@@ -47,7 +47,7 @@ bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
 #cookie_transport = CookieTransport(cookie_max_age=3600)
 
 def get_database_strategy(access_token_db: AccessTokenDatabase[AccessToken] = Depends(get_access_token_db)) -> DatabaseStrategy:
-    return DatabaseStrategy(access_token_db, lifetime_seconds=3600)
+    return DatabaseStrategy(access_token_db, lifetime_seconds=14400)
 
 auth_backend = AuthenticationBackend(name="bearer_db", transport=bearer_transport, get_strategy=get_database_strategy)
 
