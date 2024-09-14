@@ -84,7 +84,8 @@ def get_lineup_router(app):
                                     f"selections.{selection["index"]}.player_id": selection["player_id"],
                                     f"selections.{selection["index"]}.player_name": selection["player_name"],
                                     f"selections.{selection["index"]}.team_id": selection["team_id"],
-                                    f"selections.{selection["index"]}.team_abbreviation": selection["team_abbreviation"]
+                                    f"selections.{selection["index"]}.team_abbreviation": selection["team_abbreviation"],
+                                    # f"selections.{selection["index"]}.opponent": selection["opponent"]
                                     }}, 
                                 return_document=ReturnDocument.AFTER
                             )

@@ -129,8 +129,8 @@ def get_matchup_router(app):
                 "team_2_name": matchup["team_2_name"],
                 "team_2_score": matchup["team_2_score"],
                 "team_2_lineup": matchup["team_2_lineup"],
-                "winner": matchup["winner"],
-                "loser": matchup["loser"],
+                "winner": ObjectId(matchup["winner"]["$oid"]),
+                "loser": ObjectId(matchup["loser"]["$oid"]),
                 "finished": matchup["finished"],
 
             }
