@@ -115,25 +115,44 @@ def get_matchup_router(app):
 
         for matchup in await cursor.to_list(length=100):
             matchup = json.loads(json_util.dumps(matchup))
-            transformedMatchup = {
-                "_id": matchup["_id"]["$oid"],
-                "league_id": matchup["league_id"]["$oid"],
-                "season": matchup["season"],
-                "week": matchup["week"],
-                "season_type": matchup["season_type"],
-                "team_1_id": matchup["team_1_id"]["$oid"],
-                "team_1_name": matchup["team_1_name"],
-                "team_1_score": matchup["team_1_score"],
-                "team_1_lineup": matchup["team_1_lineup"],
-                "team_2_id": matchup["team_2_id"]["$oid"],
-                "team_2_name": matchup["team_2_name"],
-                "team_2_score": matchup["team_2_score"],
-                "team_2_lineup": matchup["team_2_lineup"],
-                "winner": ObjectId(matchup["winner"]["$oid"]),
-                "loser": ObjectId(matchup["loser"]["$oid"]),
-                "finished": matchup["finished"],
-
-            }
+            if matchup["winner"] != None:
+                transformedMatchup = {
+                    "_id": matchup["_id"]["$oid"],
+                    "league_id": matchup["league_id"]["$oid"],
+                    "season": matchup["season"],
+                    "week": matchup["week"],
+                    "season_type": matchup["season_type"],
+                    "team_1_id": matchup["team_1_id"]["$oid"],
+                    "team_1_name": matchup["team_1_name"],
+                    "team_1_score": matchup["team_1_score"],
+                    "team_1_lineup": matchup["team_1_lineup"],
+                    "team_2_id": matchup["team_2_id"]["$oid"],
+                    "team_2_name": matchup["team_2_name"],
+                    "team_2_score": matchup["team_2_score"],
+                    "team_2_lineup": matchup["team_2_lineup"],
+                    "winner": ObjectId(matchup["winner"]["$oid"]),
+                    "loser": ObjectId(matchup["loser"]["$oid"]),
+                    "finished": matchup["finished"],
+                }
+            else:
+                transformedMatchup = {
+                    "_id": matchup["_id"]["$oid"],
+                    "league_id": matchup["league_id"]["$oid"],
+                    "season": matchup["season"],
+                    "week": matchup["week"],
+                    "season_type": matchup["season_type"],
+                    "team_1_id": matchup["team_1_id"]["$oid"],
+                    "team_1_name": matchup["team_1_name"],
+                    "team_1_score": matchup["team_1_score"],
+                    "team_1_lineup": matchup["team_1_lineup"],
+                    "team_2_id": matchup["team_2_id"]["$oid"],
+                    "team_2_name": matchup["team_2_name"],
+                    "team_2_score": matchup["team_2_score"],
+                    "team_2_lineup": matchup["team_2_lineup"],
+                    "winner": matchup["winner"],
+                    "loser": matchup["loser"],
+                    "finished": matchup["finished"],
+                }                
             transformedMatchup["team_1_lineup"]["_id"] = matchup["team_1_lineup"]["_id"]["$oid"]
             transformedMatchup["team_1_lineup"]["contestant_id"] = matchup["team_1_lineup"]["contestant_id"]["$oid"]
             transformedMatchup["team_1_lineup"]["league_id"] = matchup["team_1_lineup"]["league_id"]["$oid"]
