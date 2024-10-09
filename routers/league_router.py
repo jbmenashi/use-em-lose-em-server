@@ -48,7 +48,6 @@ def get_league_router(app):
     
     @router.get("/league/{id}", response_description="Get a single league", response_model_by_alias=False)
     async def get_league(id: str, request: Request, user: User = Depends(current_active_user)):
-        print("help")
         if (
             league := await request.app.db["Leagues"].find_one({"_id": ObjectId(id)})
         ) is not None:
