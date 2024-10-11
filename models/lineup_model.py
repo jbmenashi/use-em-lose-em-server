@@ -16,6 +16,7 @@ class Selection(BaseModel):
     team_id: Optional[int] = None
     team_abbreviation: Optional[str] = None
     opponent: Optional[str] = None
+    game_time: Optional[str] = None
     position: str = Field(...)
     fantasy_stats: Optional[dict] = None
     total_points: float = 0
