@@ -1,6 +1,6 @@
 # UELE Server
 
-Backend API for a fantasy sports platform (leagues, contestants, lineups, matchups and player data).
+Backend API for a fantasy sports platform (leagues, contestants, lineups, matchups and player data)
 
 **Tech stack:**
 - Python, FastAPI
