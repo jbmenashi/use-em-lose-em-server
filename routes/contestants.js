@@ -3,6 +3,9 @@ import mongoose from "mongoose";
 import { getRequireClerkAuth } from "../middleware/auth.js";
 import Contestant from "../models/Contestant.js";
 import League from "../models/League.js";
+import Lineup from "../models/Lineup.js";
+import { buildWeeklyLineups } from "../utils/lineupSelections.js";
+import { defaultStandings } from "../utils/contestantDefaults.js";
 
 const router = express.Router();
 const requireClerkAuth = getRequireClerkAuth();
@@ -43,15 +46,23 @@ router.post("/:leagueId", requireClerkAuth, async (req, res) => {
     unavailablePlayers: [],
     unavailableTeams: [],
     teamCount: {},
-    standings: {},
+    standings: defaultStandings(),
     locked: false,
   });
 
-  if (contestantsCount + 1 === leagueSize) {
+  const leagueFull = contestantsCount + 1 === leagueSize;
+  if (leagueFull) {
     await League.findByIdAndUpdate(leagueId, { $set: { full: true } });
   }
 
-  res.status(201).json({ contestant: createdContestant });
+  const weeklyLineups = buildWeeklyLineups({
+    contestantId: createdContestant._id,
+    leagueId: createdContestant.leagueId,
+    league: leagueToJoin,
+  });
+  await Lineup.collection.insertMany(weeklyLineups);
+
+  res.status(201).json({ contestant: createdContestant, leagueFull });
 });
 
 router.get("/me", requireClerkAuth, async (req, res) => {

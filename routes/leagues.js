@@ -4,6 +4,10 @@ import { getRequireClerkAuth } from "../middleware/auth.js";
 import League from "../models/League.js";
 import Contestant from "../models/Contestant.js";
 import Matchup from "../models/Matchup.js";
+import Lineup from "../models/Lineup.js";
+import { buildWeeklyLineups } from "../utils/lineupSelections.js";
+import { buildRoundRobinMatchups } from "../utils/schedule.js";
+import { defaultStandings } from "../utils/contestantDefaults.js";
 
 const router = express.Router();
 const requireClerkAuth = getRequireClerkAuth();
@@ -39,6 +43,9 @@ router.post("/", requireClerkAuth, async (req, res) => {
   if (!scoring || typeof scoring !== "object") {
     return res.status(400).json({ error: "Body must include { scoring: object }" });
   }
+  if (Number(regularSeasonWeeks) + (Number(playoffWeeks) || 0) > 18) {
+    return res.status(400).json({ error: "regularSeasonWeeks plus playoffWeeks cannot exceed 18" });
+  }
 
   const createdLeague = await League.create({
     leagueName,
@@ -66,11 +73,24 @@ router.post("/", requireClerkAuth, async (req, res) => {
     unavailablePlayers: [],
     unavailableTeams: [],
     teamCount: {},
-    standings: {},
+    standings: defaultStandings(),
     locked: false,
   });
 
-  res.status(201).json({ league: createdLeague, contestant: createdContestant });
+  const weeklyLineups = buildWeeklyLineups({
+    contestantId: createdContestant._id,
+    leagueId: createdLeague._id,
+    league: createdLeague,
+  });
+  await Lineup.collection.insertMany(weeklyLineups);
+
+  const leagueFull = createdLeague.size <= 1;
+  if (leagueFull) {
+    createdLeague.full = true;
+    await createdLeague.save();
+  }
+
+  res.status(201).json({ league: createdLeague, contestant: createdContestant, leagueFull });
 });
 
 router.get("/available", requireClerkAuth, async (req, res) => {
@@ -122,6 +142,48 @@ router.get("/:id/schedule", requireClerkAuth, async (req, res) => {
   res.json(listOfMatchups);
 });
 
+// Generates the round-robin matchup schedule for a full Head to Head league.
+// Called by the client right after a join/create pushes the league to full -
+// this replaces what use-em-lose-em-scripts/nfl/schedule.py used to do as a
+// batch job.
+router.post("/:id/schedule", requireClerkAuth, async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: "Invalid league ID" });
+  }
+
+  const league = await League.findById(id).lean();
+  if (!league) {
+    return res.status(404).json({ error: `League ${id} not found` });
+  }
+
+  if (league.style !== "Head to Head") {
+    return res.status(400).json({ error: "Only Head to Head leagues have a schedule" });
+  }
+
+  if (!league.full) {
+    return res.status(400).json({ error: "League is not full yet" });
+  }
+
+  // Atomic claim: only the request that actually flips scheduled false -> true
+  // proceeds, so concurrent calls can't double-generate the schedule.
+  const claimedLeague = await League.findOneAndUpdate(
+    { _id: id, full: true, scheduled: false, style: "Head to Head" },
+    { $set: { scheduled: true } }
+  ).lean();
+
+  if (!claimedLeague) {
+    return res.status(409).json({ error: `League ${id} has already been scheduled` });
+  }
+
+  const leagueContestants = await Contestant.find({ leagueId: id }).select("_id teamName").lean();
+  const matchups = buildRoundRobinMatchups({ league: claimedLeague, contestants: leagueContestants });
+  await Matchup.insertMany(matchups);
+
+  res.status(201).json({ scheduled: true, matchupsCreated: matchups.length });
+});
+
 router.put("/:id", requireClerkAuth, async (req, res) => {
   const { id } = req.params;
 
@@ -154,6 +216,13 @@ router.put("/:id", requireClerkAuth, async (req, res) => {
     scoring,
     locked,
   } = req.body || {};
+
+  const effectiveRegularSeasonWeeks =
+    regularSeasonWeeks !== undefined ? Number(regularSeasonWeeks) : existingLeague.regularSeasonWeeks;
+  const effectivePlayoffWeeks = playoffWeeks !== undefined ? Number(playoffWeeks) : existingLeague.playoffWeeks;
+  if (effectiveRegularSeasonWeeks + effectivePlayoffWeeks > 18) {
+    return res.status(400).json({ error: "regularSeasonWeeks plus playoffWeeks cannot exceed 18" });
+  }
 
   const updateData = {};
   if (leagueName !== undefined) updateData.leagueName = leagueName;
