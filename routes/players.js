@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import { getRequireClerkAuth } from "../middleware/auth.js";
 import Contestant from "../models/Contestant.js";
+import { snakeToCamel } from "../utils/caseTransform.js";
 
 const router = express.Router();
 const requireClerkAuth = getRequireClerkAuth();
@@ -24,42 +25,42 @@ router.get("/mlb/:contestantId", requireClerkAuth, async (req, res) => {
 
   const findQuery = {
     status: "Active",
-    player_id: { $nin: unavailPlayerIds },
-    team_id: { $nin: unavailTeamIds },
+    playerId: { $nin: unavailPlayerIds },
+    teamId: { $nin: unavailTeamIds },
   };
 
   if (positionFilter) {
     if (positionFilter === "C") {
       findQuery.position = positionFilter;
     } else if (positionFilter === "IF") {
-      findQuery.position_category = positionFilter;
+      findQuery.positionCategory = positionFilter;
       findQuery.position = { $ne: "C" };
     } else {
-      findQuery.position_category = positionFilter;
+      findQuery.positionCategory = positionFilter;
     }
   }
 
   if (teamFilter) {
-    findQuery.team_abbreviation = teamFilter;
+    findQuery.teamAbbreviation = teamFilter;
   }
 
-  let sortQuery = { season_hits: -1 };
-  if (sortCategory === "H") sortQuery = { season_hits: -1 };
-  else if (sortCategory === "HR") sortQuery = { season_home_runs: -1 };
-  else if (sortCategory === "RBI") sortQuery = { season_runs_batted_in: -1 };
+  let sortQuery = { seasonHits: -1 };
+  if (sortCategory === "H") sortQuery = { seasonHits: -1 };
+  else if (sortCategory === "HR") sortQuery = { seasonHomeRuns: -1 };
+  else if (sortCategory === "RBI") sortQuery = { seasonRunsBattedIn: -1 };
 
   const pageNum = Number(page);
   const limitNum = Number(limit);
 
   const results = await mongoose.connection.db
-    .collection("MLBPlayerSearchView")
+    .collection("mlbplayersearchview")
     .find(findQuery)
     .sort(sortQuery)
     .skip((pageNum - 1) * limitNum)
     .limit(limitNum)
     .toArray();
 
-  res.json(results);
+  res.json(snakeToCamel(results));
 });
 
 router.get("/nfl/:contestantId", requireClerkAuth, async (req, res) => {
@@ -83,8 +84,8 @@ router.get("/nfl/:contestantId", requireClerkAuth, async (req, res) => {
   }
 
   const findQuery = {
-    player_id: { $nin: unavailPlayerIds },
-    team_id: { $nin: unavailTeamIds },
+    playerId: { $nin: unavailPlayerIds },
+    teamId: { $nin: unavailTeamIds },
   };
 
   if (position) {
@@ -96,25 +97,25 @@ router.get("/nfl/:contestantId", requireClerkAuth, async (req, res) => {
   }
 
   if (teamFilter) {
-    findQuery.team_abbreviation = teamFilter;
+    findQuery.teamAbbreviation = teamFilter;
   }
 
   let sortQuery = { "projection.stats.score": -1 };
-  if (sortCategory === "SEASON_PTS") sortQuery = { "season_stats.stats.yahoo_pts": -1 };
+  if (sortCategory === "SEASON_PTS") sortQuery = { "seasonStats.stats.yahooPts": -1 };
   else if (sortCategory === "PROJ_PTS") sortQuery = { "projection.stats.score": -1 };
 
   const pageNum = Number(page);
   const limitNum = Number(limit);
 
   const results = await mongoose.connection.db
-    .collection("NFLPlayerSearchView")
+    .collection("nflplayersearchview")
     .find(findQuery)
     .sort(sortQuery)
     .skip((pageNum - 1) * limitNum)
     .limit(limitNum)
     .toArray();
 
-  res.json(results);
+  res.json(snakeToCamel(results));
 });
 
 export default router;

@@ -61,7 +61,7 @@ async function start() {
     process.exit(1);
   }
 
-  await mongoose.connect(MONGODB_URI, { dbName: "ff_db", uuidRepresentation: "standard" });
+  await mongoose.connect(MONGODB_URI, { dbName: "uele2" });
   console.log("Connected to MongoDB");
 
   app.listen(PORT, () => {

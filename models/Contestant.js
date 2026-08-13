@@ -29,7 +29,7 @@ const contestantSchema = new mongoose.Schema(
     standings: { type: mongoose.Schema.Types.Mixed, default: {} },
     locked: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true, minimize: false }
 );
 
 const Contestant = mongoose.model("Contestant", contestantSchema);

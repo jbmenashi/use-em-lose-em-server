@@ -14,16 +14,16 @@ router.get("/current", requireClerkAuth, async (req, res) => {
   }).format(new Date());
 
   const currentWeeks = {};
-  const cursor = mongoose.connection.db.collection("Weeks").find({
-    start_date: { $lte: currentDate },
-    end_date: { $gte: currentDate },
+  const cursor = mongoose.connection.db.collection("weeks").find({
+    startDate: { $lte: currentDate },
+    endDate: { $gte: currentDate },
   });
 
   for await (const item of cursor) {
-    const itemSeason = `${item.sport.toLowerCase()}_season`;
+    const itemSeason = `${item.sport.toLowerCase()}Season`;
     currentWeeks[itemSeason] = item.season;
-    const itemWeek = `${item.sport.toLowerCase()}_week`;
-    currentWeeks[itemWeek] = item.week_number;
+    const itemWeek = `${item.sport.toLowerCase()}Week`;
+    currentWeeks[itemWeek] = item.weekNumber;
   }
 
   res.json(currentWeeks);
